@@ -1,0 +1,60 @@
+*.class
+*.log
+
+.cache
+
+# sbt specific
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# Scala-IDE specific
+.scala_dependencies
+# Worksheets
+.worksheet/
+*.sc
+
+ 
+/lib/ant/*.jar
+/lib/*.jar
+/test/files/codelib/*.jar
+/test/files/lib/*.jar
+/test/files/speclib/instrumented.jar
+/tools/*.jar
+
+
+# Developer specific Ant properties
+/build.properties
+
+# target directories for ant build
+/build/
+/dists/
+
+# other
+/out/
+/bin/
+/sandbox/
+
+# eclipse, intellij
+/.classpath
+/.project
+/.metadata/
+.index
+.launchers
+/src/intellij/*.iml
+/src/intellij/*.ipr
+/src/intellij/*.iws
+**/.cache
+/.idea
+/.settings
+
+
+# Standard symbolic link to build/quick/bin
+/qbin
+
+# Vim files
+*.*~
+
