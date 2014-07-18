@@ -30,23 +30,27 @@ trait SequenceSource {
         case Element(e) =>
           nChars match {
             case None => Continue(step(sbuf.append(e), count + 1))
-            case Some(n) => if (count < n)
-            				  Continue(step(sbuf.append(e), count + 1))
-            			    else
-            			      Done(sbuf.toString, Pending)
+            case Some(n) =>
+              if (count < n)
+                Continue(step(sbuf.append(e), count + 1))
+              else
+                Done(sbuf.toString, Pending)
           }
         case Pending => Done(sbuf.toString, Pending) // ?????????????
         case EndOfInput => Done(sbuf.toString, EndOfInput)
       }
       Continue(step(sb, 1))
     }
-    enumerate(getChars(nChars.getOrElse(0))).result match {
+    enumerate(getChars(0)).result match {
       case Success(s) => s
       case Failure(t) => "getChars failed: " + t.getMessage
     }
   }
 
   override def toString: String = getSequenceString(Some(20))
+}
+
+class SequenceSourceString(val seqStr: String) extends SequenceSource {
 
   @tailrec
   protected final def loop[R](itr: Iterator[Char], ite: Iteratee[Char, R]): Iteratee[Char, R] = {
@@ -58,30 +62,11 @@ trait SequenceSource {
         else loop(itr, f(EndOfInput))
     }
   }
-}
 
-object SequenceSource {
-
-  /*
-   * Return an iteratee which feeds it's input into a packed vector suitable for acting as
-   * a backing store for a SequenceSourceVector
-   */ 
-  def packedVectorGenerator: Iteratee[Char, Vector[Char]] = {
-    def step(v: Vector[Char]): Input[Char] => Iteratee[Char, Vector[Char]] = {
-      case Element(e) => Continue(step(v :+ e))
-      case Pending => Done(v, Pending) // ?????????????
-      case EndOfInput => Done(v, EndOfInput)
-    }
-    Continue(step(Vector[Char]()))
-  }
-}
-
-class SequenceSourceString(val seqStr: String) extends SequenceSource {
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = loop(seqStr.iterator, _)
 }
 
 class SequenceSourceFASTA(fileName: String) extends SequenceSource {
-
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
     val ffSource = new FASTAFileSource(fileName)
     ffSource.enumerate(_)
@@ -95,18 +80,15 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
  * the enumerator just "lifts" any supplied iteratee so that the step function's input is transformed
  * on demand.
  *  
- */ 
+ */
 class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Char) extends SequenceSource {
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
-    ite => src.enumerate(Iteratee.liftInput[Char, R](ite, transform))
-  }
+  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = ite => src.enumerate(ite.liftInput(transform))
 }
 
-// TODO: actually pack the bits...
-class SequenceSourceVector(val cache: Vector[Char]) extends SequenceSource {
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = loop(cache.iterator, _)
+class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
+  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerate(_)
 }
 
-class SequenceSourceReverseVector(val cache: Vector[Char]) extends SequenceSource {
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = loop(cache.reverseIterator, _)
+class SequenceSourceReverseCache(val cache: SequenceCache) extends SequenceSource {
+  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerateReverse(_)
 }

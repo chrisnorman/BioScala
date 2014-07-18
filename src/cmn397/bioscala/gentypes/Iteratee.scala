@@ -26,7 +26,7 @@ case object Pending extends Input[Nothing]
 case object EndOfInput extends Input[Nothing]
 
 trait Iteratee[E, R] {
-  // Retrieves the result of the iteratee by Pushing an EOF to the continuation.  
+  // Retrieves the result of the iteratee by pushing an EOF to the continuation.  
   def result: Try[R] = this match { // this is usually called "run" for some reason...
     case Done(res, rem) => Success(res)
     case Error(t) => Failure(t)
@@ -36,6 +36,15 @@ trait Iteratee[E, R] {
         case Continue(_) => Failure(new Exception("Diverging iteratee"))
         case e @ Error(t) => Failure(t)
       }
+  }
+  
+  def liftInput(inputTransform: E => E): Iteratee[E, R] = this match {
+    case Continue(f) =>
+      Continue { // map the input using the transform function
+        case Element(e) => f(Element(e).map(inputTransform)).liftInput(inputTransform)
+        case a @ _ => f(a)
+      }
+    case other @_ => other
   }
 
   def showState() = this match {
@@ -72,14 +81,6 @@ case class Error[E, R](t: Throwable) extends Iteratee[E, R] {
 }
 
 object Iteratee {
-  def liftInput[E, R](ite: Iteratee[E, R], transform: E => E): Iteratee[E, R] = ite match {
-    case Continue(f) =>
-      Continue { // map the input using the transform function
-        case Element(e) => liftInput(f(Element(e).map(transform)), transform)
-        case a @ _ => f(a)
-      }
-    case other @_ => other
-  }
   /*
   def apply[E, R](e: Element[E] => Iteratee[E, R],
 		  			empty: => Iteratee[E, R],

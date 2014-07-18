@@ -17,7 +17,7 @@ trait FASTAFileParser {
   protected def nextChar[R](srcIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R]): Iteratee[Char, R] = {
     if (srcIt.hasNext) {
       val nc = srcIt.next
-      if (nc == '\r') {
+      if (nc == '\r' || nc == '\n') {
         if (srcIt.hasNext) {
           val nc2 = srcIt.next
           if (nc2 == '\n') {

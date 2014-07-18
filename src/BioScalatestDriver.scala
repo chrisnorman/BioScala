@@ -14,7 +14,6 @@ import cmn397.bioscala.core._
 import cmn397.bioscala.gentypes._
 
 //import bioscala.filehandlers.FASTAFileReader
-//import bioscala.populations.Population
 //import bioscala.graph._
 
 /**
@@ -33,7 +32,17 @@ object BioScalaTestDriver {
        			println(seq.countBases)
 
       case 2 => // TestID: rna
-        
+
+       			val bseq = DNASequence("c:\\Sharing\\Development\\TestFiles\\chr22.FASTA")
+       			val content = bseq.getGCContent
+       			assert(content.isSuccess)
+       			println(content.get)
+
+       			val bseqrev = bseq.reverseComplement
+       			assert(bseqrev.isSuccess)
+       			val c2 = bseqrev.get.getGCContent
+       			println(c2)
+
        			val seq1 = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
        			println(seq1)
 
@@ -45,7 +54,7 @@ object BioScalaTestDriver {
      case 3 => // TestID: revc
         		val inputFile = getTestFileDir + "Testrevc.txt"
       			val seq = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
-     			println(seq.reverseComplement.toString)
+     			println(seq.reverseComplement.get.getSequenceString())
 /*   
       case 4 => // TestID: gc
 		        val ff = new FASTAFileReader(getTestFileDir + "tgc.fasta")

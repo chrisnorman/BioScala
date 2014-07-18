@@ -28,13 +28,14 @@ import cmn397.bioscala.core._
   // TestID: rna
   test("DNA Transcribe") {
     val rnaSeq = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
-    assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString() == "GAUGGAACUUGACUACGUAAAUU")
+    assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString().toUpperCase == "GAUGGAACUUGACUACGUAAAUU")
   }
 
   // TestID: revc
   test("DNA Reverse Complement") {
     val revComp = DNASequence("TestID: revc", "AAAACCCGGT").reverseComplement
-    assert(revComp.isSuccess && revComp.get.getSequenceString() == "ACCGGGTTTT")
+    val s = revComp.get.getSequenceString()
+    assert(revComp.isSuccess && revComp.get.getSequenceString().toUpperCase == "ACCGGGTTTT")
   }
 
   // TestID: gc
