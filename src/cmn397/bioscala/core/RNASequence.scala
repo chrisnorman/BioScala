@@ -28,26 +28,19 @@ object RNASequence {
   }
 }
 
-class RNASequence(id: String, src: SequenceSource) extends NucleotideSequence(id, src) {
+class RNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = RNAAlphabet
 
   override final def countBases: Try[(Long, Long, Long, Long)] = {
-    def countNucleotides: Iteratee[Char, (Long, Long, Long, Long)] = {
-      def step(r: (Long, Long, Long, Long)): Input[Char] => Iteratee[Char, (Long, Long, Long, Long)] = {
-        case Element(e) =>
-          e.toLower match {
-            case 'a' => Continue(step((r._1 + 1, r._2, r._3, r._4)))
-            case 'c' => Continue(step((r._1, r._2 + 1, r._3, r._4)))
-            case 'g' => Continue(step((r._1, r._2, r._3 + 1, r._4)))
-            case 'u' => Continue(step((r._1, r._2, r._3, r._4 + 1)))
-            case _ => Error(new IllegalArgumentException)
-          }
-        case Pending => Done(r, Pending) // ?????????????
-        case EndOfInput => Done(r, EndOfInput)
-      }
-      Continue(step(0, 0, 0, 0))
-    }
-    src.enumerate(countNucleotides).result
+    val counter = Iteratee.fold[Char, (Long, Long, Long, Long)](0, 0, 0, 0)((r, e) =>
+      e.toLower match {
+        case 'a' => (r._1 + 1, r._2, r._3, r._4)
+        case 'c' => (r._1, r._2 + 1, r._3, r._4)
+        case 'g' => (r._1, r._2, r._3 + 1, r._4)
+        case 'u' => (r._1, r._2, r._3, r._4 + 1)
+       }
+    )
+    src.enumerate(counter).result
   }
 
   /**

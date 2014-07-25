@@ -13,63 +13,52 @@ import scala.util.{ Try, Success, Failure }
 
 import cmn397.bioscala.gentypes._
 
-trait SequenceCache {
+trait SequenceCache extends Enumerator[Char] {
+
   val length: Int
 
   def append(c: Char): SequenceCache
+
   def valueAt(index: Int): Char
 
-  def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = loop(0, _)
-  def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = revloop(0, _)
+  def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
 
-  @tailrec
-  protected final def revloop[R](count: Int, ite: Iteratee[Char, R]): Iteratee[Char, R] = {
-    ite match {
-      case d @ Done(_, _) => d
-      case e @ Error(t) => e
+  def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
+
+  protected final def enumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
+    _ match {
       case c @ Continue(f) =>
-        if ((length - count) != 0) revloop(count + 1, f(Element(valueAt(length - count - 1))))
-        else revloop(count + 1, f(EndOfInput))
+        if (count != length) enumerateStep(count + 1)(f(Element(valueAt(count))))
+        else enumerateStep(count + 1)(f(EndOfInput))
+      case other @_ => other
     }
   }
 
-  @tailrec
-  protected final def loop[R](count: Int, ite: Iteratee[Char, R]): Iteratee[Char, R] = {
-    ite match {
-      case d @ Done(_, _) => d
-      case e @ Error(t) => e
+  protected final def reverseEnumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
+    _ match {
       case c @ Continue(f) =>
-        if (count != length) loop(count + 1, f(Element(valueAt(count))))
-        else loop(count + 1, f(EndOfInput))
+        if ((length - count) != 0) reverseEnumerateStep(count + 1)(f(Element(valueAt(length - count - 1))))
+        else reverseEnumerateStep(count + 1)(f(EndOfInput))
+      case other @_ => other
     }
   }
 }
 
 object SequenceCache {
-  /*
-   * Return an iteratee which returns a populated *unpacked* SequenceCache (suitable for acting as
-   * a backing store for a SequenceSourceCache).
-   */ 
+  /**
+   * Return an iteratee which generates a populated, *unpacked* SequenceCache, suitable for acting as
+   * a backing store for a SequenceSourceCache.
+   */
   def unpackedCacheGenerator: Iteratee[Char, SequenceCache] = {
-    def step(sc:SequenceCache): Input[Char] => Iteratee[Char, SequenceCache] = {
-      case Element(e) => Continue(step(sc.append(e)))
-      case Pending => Done(sc, Pending) // ?????????????
-      case EndOfInput => Done(sc, EndOfInput)
-    }
-    Continue(step(new SequenceCacheUnpacked))
+    Iteratee.fold[Char, SequenceCache](new SequenceCacheUnpacked)((r, e) => r.append(e))
   }
 
-  /*
-   * Return an iteratee which returns a populated *packed* SequenceCache (suitable for acting as
-   * a backing store for a SequenceSourceCache).
+  /**
+   * Return an iteratee which generates a populated, *packed* SequenceCache, suitable for acting as
+   * a backing store for a SequenceSourceCache.
    */
   def packedCacheGenerator: Iteratee[Char, SequenceCache] = {
-    def step(sc:SequenceCache): Input[Char] => Iteratee[Char, SequenceCache] = {
-      case Element(e) => Continue(step(sc.append(e)))
-      case Pending => Done(sc, Pending) // ?????????????
-      case EndOfInput => Done(sc, EndOfInput)
-    }
-    Continue(step(new SequenceCachePacked))
+    Iteratee.fold[Char, SequenceCache](new SequenceCachePacked)((r, e) => r.append(e))
   }
 }
 
@@ -87,11 +76,11 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 // them to int indices for the vector
 class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) extends SequenceCache {
 
-  def this() = this(Vector[Int](), 0)
+  def this() 		= this(Vector[Int](), 0)
 
-  private val S 		= 2				// # of bits per char
-  private val N 		= 32 / S		// chars per int
-  private val M			= (1 << S) -1
+  private val S 	= 2							// # of bits per char
+  private val N 	= 32 / S					// chars per int
+  private val M		= (1 << S) -1
 
   private def globalIndex(i: Int)	= i / N
   private def localIndex(i: Int)	= i % N

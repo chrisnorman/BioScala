@@ -11,7 +11,7 @@ package cmn397.bioscala.core
 /**
  * A sequence of amino acids representing a polypeptide.
  */
-abstract case class ProteinSequence(id: String, val src: SequenceSource) extends Sequence(id, src)
+abstract case class ProteinSequence(override val id: String, override val src: SequenceSource) extends Sequence(id, src)
 {
   val alpha = ProteinAlphabet
 

@@ -24,7 +24,6 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
   // should enumerate sequences; the other one should enumerate the stream f a single
   // sequence
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
-    case ite @ _ =>
       try {
         val fis = new java.io.FileInputStream(fileName)
         try {
@@ -32,7 +31,7 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
           try {
             val srcIt = bs.iter
             @tailrec
-            def loop(ite: Iteratee[Char, R]): Iteratee[Char, R] = {
+            def loop (ite: Iteratee[Char, R]): Iteratee[Char, R] = {
               ite match {
                 case d @ Done(_, _) => d
                 case e @ Error(t) => e
@@ -42,14 +41,15 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
             // @TODO: PARSING - doesn't generate an error on a non-FASTA file- just happily enumerates whatever is there...
             // also should save off this header as the sequence ID
             while (srcIt.hasNext && (srcIt.next != '\n')) {} // skip the first line (header)
-            loop(ite)
-          } catch { case NonFatal(ex) => Error(ex) }
+            loop
+          } catch { case NonFatal(ex) => {_ => Error(ex) }}
           finally {
+            println("releasing stream")
             bs.close
             fis.close
           }
-        } catch { case NonFatal(ex) => Error(ex) }
+        } catch { case NonFatal(ex) => { _ => Error(ex) }}
         finally { fis.close }
-      } catch { case ex: Exception => Error(ex) }
+      } catch { case ex: Exception => { _ => Error(ex) }}
   }
 }

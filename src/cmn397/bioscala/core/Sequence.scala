@@ -15,7 +15,7 @@ import cmn397.bioscala.gentypes._
  */
 
 // TODO: need to validate enumerate against alphabet
-abstract class Sequence(id: String, src: SequenceSource) {
+abstract class Sequence(val id: String, val src: SequenceSource) {
   val alpha: Alphabet[Char]
 
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = src.enumerate(_)
@@ -24,27 +24,21 @@ abstract class Sequence(id: String, src: SequenceSource) {
   /**
    * Returns the Hamming distance between this sequence and the target sequence.
    */
-  /*
-  def getHammingDistance(targetSeq: Sequence): Long = {
-    def hammingDistance(seq1: Vector[Char], seq2: Vector[Char], acc: Long): Long = {
-      if (!seq1.isEmpty) hammingDistance(seq1.tail, seq2.tail, acc + (if (seq1.head != seq2.head) 1 else 0))
-      else acc
-    }
-    hammingDistance(this.getS.toVector, targetSeq.getS.toVector, 0)
-  }
 
   def getHammingDistance(targetSeq: Sequence): Long = {
-    def getHamming: Iteratee[Char, Long] = {
-      def step(r: Long): Input[Char] => Iteratee[Char, Long] = {
-        case Element(e) => 
-        case Pending => Done(r, Pending) // ?????????????
-        case EndOfInput => Done(r, EndOfInput)
+    val ham = Iteratee.fold[(Option[Char], Option[Char]), Long](0)((r, e) => {
+      e match {
+        case (Some(c1), Some(c2)) => r + (if (c1 == c2) 0 else 1)
+        case (Some(c), None) => r + 1
+        case (None, Some(c)) => r + 1
+        case (None, None) => r
       }
-      Continue(step(0))
-    }
-    src.enumerate(getHamming).result
+    })
+    val zipped = src.zip(targetSeq.src)
+    val hDist = zipped.enumerate(ham).result
+    hDist.getOrElse(-1)
   }
-*/
+
   // @FIX: Do something better than brute force motif search
   /**
    * Returns a literal motif. Brute force. Needs work.

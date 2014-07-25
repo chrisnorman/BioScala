@@ -12,12 +12,14 @@ import org.scalatest.FunSuite
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import scala.util.{ Try, Success, Failure }
+
 import cmn397.bioscala.core._
 
 @RunWith(classOf[JUnitRunner])class SequenceSuite extends FunSuite {
 
   // TestID: dna
-  test("Count Bases") {
+  test("Count DNA Bases") {
     val seq = DNASequence("TestID: dna", "AGCTTTTCATTCTGACTGCAACGGGCAATATGTCTCTGTGTGGATTAAAAAAAGAGTGTCTGATAGCAGC")
     val res = seq.countBases
     assert(res.isSuccess)
@@ -28,14 +30,26 @@ import cmn397.bioscala.core._
   // TestID: rna
   test("DNA Transcribe") {
     val rnaSeq = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
-    assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString().toUpperCase == "GAUGGAACUUGACUACGUAAAUU")
+    val s = rnaSeq.get.getSequenceString(None)
+    assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString(None).toUpperCase == "GAUGGAACUUGACUACGUAAAUU")
+  }
+
+  test("Reverse Cache") {
+    // just reverse the sequence
+    val seq = DNASequence("TestID: revc", "AAAACCCGGT")
+    val transformAndPack = SequenceCache.packedCacheGenerator
+    val revseq = seq.src.enumerate(transformAndPack).result match {
+      case Success(cache) => Success(DNASequence("Reverse complement of " + seq.id, new SequenceSourceReverseCache(cache)))
+      case Failure(t) => Failure(t)
+    }
+    assert(revseq.isSuccess && revseq.get.getSequenceString(None).toUpperCase == "TGGCCCAAAA")
   }
 
   // TestID: revc
   test("DNA Reverse Complement") {
     val revComp = DNASequence("TestID: revc", "AAAACCCGGT").reverseComplement
     val s = revComp.get.getSequenceString()
-    assert(revComp.isSuccess && revComp.get.getSequenceString().toUpperCase == "ACCGGGTTTT")
+    assert(revComp.isSuccess && s.toUpperCase == "ACCGGGTTTT")
   }
 
   // TestID: gc
@@ -46,14 +60,14 @@ import cmn397.bioscala.core._
     assert(content.get - 53.75 < .001)
   }
 
-/*
+
   // TestID: hamm
   test("Hamming Distance") {
     val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
     val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
     assert(seq1.getHammingDistance(seq2) == 7)
   }
-
+/*
   // TestID: prot
   test("Translate to Protein") {
     val seq1 = RNASequence("TestID: prot", "AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA")

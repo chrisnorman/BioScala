@@ -24,32 +24,35 @@ class FASTAFileSource(fileName: String) extends FASTAFileParser {
    * Creates and returns a FASTAFileSource for the file named by fileName.
    */
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
-    case ite @ _ =>
+    try {
+      val fis = new java.io.FileInputStream(fileName)
       try {
-        val fis = new java.io.FileInputStream(fileName)
+        val bs = new BufferedSource(fis)
         try {
-          val bs = new BufferedSource(fis)
-          try {
-            val srcIt = bs.iter
-            @tailrec
-            def loop(ite: Iteratee[Char, R]): Iteratee[Char, R] = {
-              ite match {
-                case d @ Done(_, _) => d
-                case e @ Error(t) => e
-                case Continue(f) => loop(nextChar(srcIt, f))
+          val srcIt = bs.iter
+          def loop: Iteratee[Char, R] => Iteratee[Char, R] = {
+        	_ match {
+              case d @ Done(_, _) => d
+              case e @ Error(t) => e
+              case Continue(f) =>
+                try {
+                  nextChar(srcIt, f)
+                }
+                catch {
+                  case NonFatal(ex) => Error(ex)
+                }
+                finally {
+                  bs.close
+                  fis.close
+                }
               }
-            }
-            // @TODO: PARSING - doesn't generate an error on a non-FASTA file- just happily enumerates whatever
-            // is there...also should save off this header as the sequence ID
-            while (srcIt.hasNext && (srcIt.next != '\n')) {} // skip the first line (header)
-            loop(ite)
-          } catch { case NonFatal(ex) => Error(ex) }
-          finally {
-            bs.close
-            fis.close
           }
-        } catch { case NonFatal(ex) => Error(ex) }
-        finally { fis.close }
-      } catch { case ex: Exception => Error(ex) }
+          // @TODO: PARSING - doesn't generate an error on a non-FASTA file- just happily enumerates whatever
+          // is there...also should save off this header as the sequence ID
+          while (srcIt.hasNext && (srcIt.next != '\n')) {} // skip the first line (header)
+          loop
+        } catch { case NonFatal(ex) => { _ => Error(ex) }}
+      } catch { case NonFatal(ex) => { _ => Error(ex) }}
+    } catch { case ex: Exception => { _ => Error(ex) }}
   }
 }

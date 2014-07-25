@@ -32,29 +32,25 @@ object BioScalaTestDriver {
        			println(seq.countBases)
 
       case 2 => // TestID: rna
-
-       			val bseq = DNASequence("c:\\Sharing\\Development\\TestFiles\\chr22.FASTA")
-       			val content = bseq.getGCContent
-       			assert(content.isSuccess)
-       			println(content.get)
-
-       			val bseqrev = bseq.reverseComplement
-       			assert(bseqrev.isSuccess)
-       			val c2 = bseqrev.get.getGCContent
-       			println(c2)
-
-       			val seq1 = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
-       			println(seq1)
-
        			val inputFile = getTestFileDir + "trna.txt" // called tRNA, but it contains a DNA string
       			val seq2 = DNASequence("Test transcribe", Source.fromFile(inputFile).getLines.mkString)
       			val tseq = seq2.transcribe
      			println(tseq)
       
      case 3 => // TestID: revc
-        		val inputFile = getTestFileDir + "Testrevc.txt"
-      			val seq = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
-     			println(seq.reverseComplement.get.getSequenceString())
+       			val seq = DNASequence(getTestFileDir + "thammdist1.FASTA")
+       			val targ = DNASequence(getTestFileDir + "thammdist2.FASTA")
+       			val dist = targ.getHammingDistance(seq)
+       			println("Hamming distance: " + dist)
+
+       			val jimmy = targ.src.enumerate(Iteratees.take(3))
+
+       			val revComp = seq.reverseComplement
+       			println(revComp)
+
+       			val inputFile = getTestFileDir + "trevc.txt"
+      			val seq2 = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
+     			val s = seq2.reverseComplement.get.getSequenceString()
 /*   
       case 4 => // TestID: gc
 		        val ff = new FASTAFileReader(getTestFileDir + "tgc.fasta")
@@ -132,7 +128,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(2)
+    doBioScala(3)
   }
 
 /*
