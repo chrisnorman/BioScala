@@ -85,15 +85,15 @@ import cmn397.bioscala.core._
     assert(mappedSeq.getSequenceString(None) == "ACCGGGTTTT")
   }
 
-  /*
   // TestID: hamm
   test("Hamming Distance") {
     val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
     val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
-    assert(seq1.getHammingDistance(seq2) == 7)
+    val tDist = seq1.getHammingDistance(seq2)
+    assert(tDist.isSuccess && tDist.get == 7)
   }
-  */
 
+ /*
   // TestID: revc
   test("Sequence: Reverse Complement") {
     val revComp = DNASequence("TestID: revc", "AAAACCCGGT").reverseComplement
@@ -117,7 +117,6 @@ import cmn397.bioscala.core._
     assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString(None) == "GAUGGAACUUGACUACGUAAAUU")
   }
 
-/*
   // TestID: prot
   test("Translate to Protein") {
     val seq1 = RNASequence("TestID: prot", "AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA")

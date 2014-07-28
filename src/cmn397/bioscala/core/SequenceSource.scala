@@ -125,7 +125,7 @@ class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Cha
  * or unpacked.
  */
 class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
-  override def apply(i: Int): Try[Char] = Try(cache.valueAt(i))
+  override def apply(i: Int): Try[Char] = cache.apply(i)
   override def reify = Try(this)
   override def reverse: Try[SequenceSourceReverseCache] = Try(new SequenceSourceReverseCache(cache))
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerate
@@ -139,7 +139,7 @@ class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
  * without ever actually materializing the reverse, complement, or transcribed sequences in memory.
  */
 class SequenceSourceReverseCache(val cache: SequenceCache) extends SequenceSource {
-  override def apply(i: Int): Try[Char] = Try(cache.valueAt(cache.length - 1 - i))
+  override def apply(i: Int): Try[Char] = cache.apply(cache.length - 1 - i)
   override def reify = Try(this)
   override def reverse: Try[SequenceSourceCache] = Try(new SequenceSourceCache(cache))
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerateReverse

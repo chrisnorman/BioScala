@@ -18,7 +18,8 @@ trait SequenceCache extends Enumerator[Char] {
   val length: Int
 
   def append(c: Char): SequenceCache
-  def valueAt(index: Int): Char
+  def apply(index: Int): Try[Char]
+  def getIterator: Iterator[Char]
 
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
   def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
@@ -26,7 +27,7 @@ trait SequenceCache extends Enumerator[Char] {
   protected final def enumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
     _ match {
       case c @ Continue(f) =>
-        if (count != length) enumerateStep(count + 1)(f(Element(valueAt(count))))
+        if (count != length) enumerateStep(count + 1)(f(Element(apply(count).get)))
         else enumerateStep(count + 1)(f(EndOfInput))
       case other @_ => other
     }
@@ -35,7 +36,7 @@ trait SequenceCache extends Enumerator[Char] {
   protected final def reverseEnumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
     _ match {
       case c @ Continue(f) =>
-        if ((length - count) != 0) reverseEnumerateStep(count + 1)(f(Element(valueAt(length - count - 1))))
+        if ((length - count) != 0) reverseEnumerateStep(count + 1)(f(Element(apply(length - count - 1).get)))
         else reverseEnumerateStep(count + 1)(f(EndOfInput))
       case other @_ => other
     }
@@ -65,7 +66,12 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
   def this() = this(Vector[Char](), 0)
 
   def append(c: Char): SequenceCache = new SequenceCacheUnpacked(vCache :+ c, length + 1)
-  def valueAt(i: Int): Char = vCache(i)
+  def apply(i: Int): Try[Char] = Try(vCache(i))
+  def getIterator: Iterator[Char] = new Iterator[Char] {
+    var i = 0
+    def hasNext: Boolean = i < length
+    def next: Char = {val ret = vCache(i); i+=1; ret}
+  }
 }
 
 // NOTE: the packed encoding does NOT preserve case in the sequence characters, and always yields
@@ -75,7 +81,13 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 // for the vector since the vector is packed and only takes 1/4n entries to store n values.
 class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) extends SequenceCache {
 
-  def this() 		= this(Vector[Int](), 0)
+  def this() = this(Vector[Int](), 0)
+
+  def getIterator: Iterator[Char] = new Iterator[Char] {
+    var i = 0
+    def hasNext: Boolean = i < length
+    def next: Char = {val ret = valueAt(i); i+=1; ret}
+  }
 
   private val S 	= 2							// # of bits per char
   private val N 	= 32 / S					// chars per int
@@ -90,7 +102,8 @@ class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) ex
   private def fromInt(v: Int) 	= upperFromInt(v)
 
   private def updateAt(i: Int, ch: Char) = vCache(globalIndex(i)) | toInt(ch) << (localIndex(i) * S)
-  def valueAt(i: Int): Char = fromInt(vCache(globalIndex(i)) >> (localIndex(i) * S) & M)
+  private def valueAt(i: Int) = fromInt(vCache(globalIndex(i)) >> (localIndex(i) * S) & M)
+  def apply(i: Int): Try[Char] = Try(valueAt(i))
 
   def append(c: Char): SequenceCachePacked = {
     if (length == Int.MaxValue) throw new IllegalArgumentException

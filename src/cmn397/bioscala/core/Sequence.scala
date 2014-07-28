@@ -9,6 +9,7 @@
 package cmn397.bioscala.core
 
 import scala.util.{ Try, Success, Failure }
+import scala.annotation.tailrec
 
 import cmn397.bioscala.gentypes._
 
@@ -31,7 +32,14 @@ abstract class Sequence(val id: String, val src: SequenceSource) {
   /**
    * Returns the Hamming distance between this sequence and the target sequence.
    */
-  def getHammingDistance(targetSeq: Sequence): Int = {
+  // TODO: this is slow, ugly, and NOT tail recursive...
+  def getHammingDistance(targetSeq: Sequence): Try[Int] = {
+    def tryToOpt[E](t: Try[E]): Option[E] = {
+      t match {
+        case Success(e) => Some(e)
+        case Failure(ex) => None
+      }
+    }
     val hammIt = Iteratee.fold[(Option[Char], Option[Char]), Int](0)((r, e) => {
       e match {
         case (Some(c1), Some(c2)) => r + (if (c1 == c2) 0 else 1)
@@ -40,18 +48,36 @@ abstract class Sequence(val id: String, val src: SequenceSource) {
         case (None, None) => r
       }
     })
-
-    def getHamm(seq1: Sequence, seq2: Sequence): Int = {
-      // TODO: implement this
-      -1
+    // fake enumeration by calling the iteratee manually...
+    //@tailrec
+    def getHamm(it: Iteratee[(Option[Char], Option[Char]), Int], seq1: Sequence, seq2: Sequence, i: Int):
+    	Iteratee[(Option[Char], Option[Char]), Int] =
+    {
+      val retIt = it match {
+        case Continue(f) =>
+          val tChar1 = seq1(i)
+          val tChar2 = seq2(i)
+          if (tChar1.isSuccess || tChar2.isSuccess) {
+        	val ch1 = tryToOpt(tChar1)
+        	val ch2 = tryToOpt(tChar2)
+        	getHamm(f(Element((ch1, ch2))), seq1, seq2, i+1)
+          }
+          else it
+        case o @ other => o
+      }
+      retIt
     }
+ 
     // simulate enumeration via iteration
-    val dist = for {
+    val tryDist = for {
       seq1 <- this.reify
       seq2 <- targetSeq.reify
-    } yield getHamm(seq1, seq2)
+    } yield getHamm(hammIt, seq1, seq2, 0)
     
-    dist.getOrElse(-1)
+    tryDist match {
+      case Success(it) => it.result
+      case Failure(t) => Failure(t)
+    }
   }
 
   // @FIX: Do something better than brute force motif search
