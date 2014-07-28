@@ -27,35 +27,37 @@ object DNASequence {
 class DNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = DNAAlphabet
 
+  def reify: Try[DNASequence] = src.reify.map(s => DNASequence(id, s))
+
   /** Returns the RNASequence representing by this DNASequence. */
   def transcribe: Try[RNASequence] = {
     val m = Map[Char, Char]('T' -> 'U', 't' -> 'u')
-    Success(new RNASequence("DNA: " + id + ", transcribed",
+    Try(new RNASequence("DNA: " + id + ", transcribed",
       new SequenceSourceMappedLinear(src, c => m.getOrElse(c, c))))
   }
 
   /** Returns the DNASequence representing the reverse complement of this DNASequence. */
   def reverseComplement: Try[DNASequence] = {
     val complementMap = Map[Char, Char](
-    		'A' -> 'T', 'a' -> 't', 'T' -> 'A', 't' -> 'a', 'C' -> 'G', 'c' -> 'g', 'G' -> 'C', 'g' -> 'c')
+      'A' -> 'T', 'a' -> 't', 'T' -> 'A', 't' -> 'a', 'C' -> 'G', 'c' -> 'g', 'G' -> 'C', 'g' -> 'c')
     val transformAndPack = SequenceCache.packedCacheGenerator.mapInput(complementMap)
-    src.enumerate(transformAndPack).result match {
-      case Success(cache) => Success(DNASequence("Reverse complement of " + id, new SequenceSourceReverseCache(cache)))
-      case Failure(t) => Failure(t)
-    }
+    for {
+      tryCache <- src.enumerate(transformAndPack).result
+      cache <- tryCache
+      seq = DNASequence("Reverse complement of " + id, new SequenceSourceReverseCache(cache))
+    } yield seq
   }
 
-override final def countBases: Try[(Long, Long, Long, Long)] = {
-  val counter = Iteratee.fold[Char, (Long, Long, Long, Long)](0, 0, 0, 0)((r, e) =>
-    e.toLower match {
-      case 'a' => (r._1 + 1, r._2, r._3, r._4)
-      case 'c' => (r._1, r._2 + 1, r._3, r._4)
-      case 'g' => (r._1, r._2, r._3 + 1, r._4)
-      case 't' => (r._1, r._2, r._3, r._4 + 1)
-    }
-  )
-  src.enumerate(counter).result
-}
+  override final def countBases: Try[(Long, Long, Long, Long)] = {
+    val counter = Iteratee.fold[Char, (Long, Long, Long, Long)](0, 0, 0, 0)((r, e) =>
+      e.toLower match {
+        case 'a' => (r._1 + 1, r._2, r._3, r._4)
+        case 'c' => (r._1, r._2 + 1, r._3, r._4)
+        case 'g' => (r._1, r._2, r._3 + 1, r._4)
+        case 't' => (r._1, r._2, r._3, r._4 + 1)
+      })
+    src.enumerate(counter).result
+  }
 
   /**
    * Returns a List of candidate ProteinSequences representing each possible protein to which

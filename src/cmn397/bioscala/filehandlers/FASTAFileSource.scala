@@ -36,7 +36,7 @@ class FASTAFileSource(fileName: String) extends FASTAFileParser {
               case e @ Error(t) => e
               case Continue(f) =>
                 try {
-                  nextChar(srcIt, f)
+                  loop(nextChar(srcIt, f))
                 }
                 catch {
                   case NonFatal(ex) => Error(ex)

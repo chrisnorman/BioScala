@@ -20,6 +20,10 @@ import cmn397.bioscala.filehandlers.FASTAFileSource
  *
  */
 trait SequenceSource extends Enumerator[Char] {
+  
+  def apply(i: Int): Try[Char]
+
+  def reify: Try[SequenceSource]
 
   def getSequenceString(nChars: Option[Long] = None): String = {
     val sb: StringBuffer = new StringBuffer;
@@ -45,6 +49,10 @@ trait SequenceSource extends Enumerator[Char] {
 
 class SequenceSourceString(val seqStr: String) extends SequenceSource {
 
+  def apply(i: Int): Try[Char] = Try(seqStr(i))
+
+  override def reify = Try(this)
+
   protected final def enumerateStep[R](itr: Iterator[Char]): Iteratee[Char, R] => Iteratee[Char, R] = {
     @tailrec
     def eStep(ite: Iteratee[Char, R]): Iteratee[Char, R] = {
@@ -62,6 +70,17 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource {
 }
 
 class SequenceSourceFASTA(fileName: String) extends SequenceSource {
+
+  def apply(i: Int): Try[Char] = Failure(new IllegalStateException("Must reify FASTA File source"))
+
+  override def reify: Try[SequenceSource] = {
+    for {
+      tryCache <- enumerate(SequenceCache.packedCacheGenerator).result
+      cache <- tryCache
+      src = new SequenceSourceCache(cache)
+    } yield src
+  }
+
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
     val ffSource = new FASTAFileSource(fileName)
     ffSource.enumerate
@@ -77,13 +96,28 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
  *  
  */
 class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Char) extends SequenceSource {
+
+  def apply(i: Int): Try[Char] = Failure(new IllegalStateException("Must reify FASTA File source"))
+
+  override def reify: Try[SequenceSource] = {
+    for {
+      tryCache <- enumerate(SequenceCache.packedCacheGenerator.mapInput(transform)).result
+      cache <- tryCache
+      src = new SequenceSourceCache(cache)
+    } yield src
+  }
+
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = ite => src.enumerate(ite.mapInput(transform))
 }
 
 class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
+  def apply(i: Int): Try[Char] = Try(cache.valueAt(i))
+  override def reify = Try(this)
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerate
 }
 
 class SequenceSourceReverseCache(val cache: SequenceCache) extends SequenceSource {
+  def apply(i: Int): Try[Char] = Try(cache.valueAt(i))
+  override def reify = Try(this)
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerateReverse
 }

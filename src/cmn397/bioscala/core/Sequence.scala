@@ -8,6 +8,8 @@
 
 package cmn397.bioscala.core
 
+import scala.util.{ Try, Success, Failure }
+
 import cmn397.bioscala.gentypes._
 
 /**
@@ -17,9 +19,12 @@ import cmn397.bioscala.gentypes._
 // TODO: need to validate enumerate against alphabet
 abstract class Sequence(val id: String, val src: SequenceSource) {
   val alpha: Alphabet[Char]
+  
+  def apply(i: Int): Try[Char] = src(i)
 
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = src.enumerate(_)
   def getSequenceString(nChars: Option[Long] = None) = src.getSequenceString(nChars)
+  def reify: Try[Sequence] // read this sequence into memory for random access
 
   /**
    * Returns the Hamming distance between this sequence and the target sequence.
@@ -34,9 +39,10 @@ abstract class Sequence(val id: String, val src: SequenceSource) {
         case (None, None) => r
       }
     })
-    val zipped = src.zip(targetSeq.src)
-    val hDist = zipped.enumerate(ham).result
-    hDist.getOrElse(-1)
+    val seq1 = this.reify
+    val seq2 = targetSeq.reify
+    // TODO Implement this
+    -1
   }
 
   // @FIX: Do something better than brute force motif search

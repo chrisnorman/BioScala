@@ -18,11 +18,9 @@ trait SequenceCache extends Enumerator[Char] {
   val length: Int
 
   def append(c: Char): SequenceCache
-
   def valueAt(index: Int): Char
 
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
-
   def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
 
   protected final def enumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
@@ -49,20 +47,21 @@ object SequenceCache {
    * Return an iteratee which generates a populated, *unpacked* SequenceCache, suitable for acting as
    * a backing store for a SequenceSourceCache.
    */
-  def unpackedCacheGenerator: Iteratee[Char, SequenceCache] = {
-    Iteratee.fold[Char, SequenceCache](new SequenceCacheUnpacked)((r, e) => r.append(e))
+  def unpackedCacheGenerator: Iteratee[Char, Try[SequenceCache]] = {
+    Iteratee.fold[Char, Try[SequenceCache]](Try(new SequenceCacheUnpacked))((r, e) => r.map(c => c.append(e)))
   }
 
   /**
    * Return an iteratee which generates a populated, *packed* SequenceCache, suitable for acting as
    * a backing store for a SequenceSourceCache.
    */
-  def packedCacheGenerator: Iteratee[Char, SequenceCache] = {
-    Iteratee.fold[Char, SequenceCache](new SequenceCachePacked)((r, e) => r.append(e))
+  def packedCacheGenerator: Iteratee[Char, Try[SequenceCache]] = {
+    Iteratee.fold[Char, Try[SequenceCache]](Try(new SequenceCachePacked))((r, e) => r.map(c => c.append(e)))
   }
 }
 
 class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int) extends SequenceCache {
+
   def this() = this(Vector[Char](), 0)
 
   def append(c: Char): SequenceCache = new SequenceCacheUnpacked(vCache :+ c, length + 1)

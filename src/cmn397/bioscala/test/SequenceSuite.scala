@@ -38,10 +38,8 @@ import cmn397.bioscala.core._
     // just reverse the sequence
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     val transformAndPack = SequenceCache.packedCacheGenerator
-    val revseq = seq.src.enumerate(transformAndPack).result match {
-      case Success(cache) => Success(DNASequence("Reverse complement of " + seq.id, new SequenceSourceReverseCache(cache)))
-      case Failure(t) => Failure(t)
-    }
+    val revseq = seq.src.enumerate(transformAndPack).result.flatMap(t => t.map(c => DNASequence("Reverse complement of " + seq.id, new SequenceSourceReverseCache(c))))
+
     assert(revseq.isSuccess && revseq.get.getSequenceString(None).toUpperCase == "TGGCCCAAAA")
   }
 
@@ -60,14 +58,14 @@ import cmn397.bioscala.core._
     assert(content.get - 53.75 < .001)
   }
 
-
+/*
   // TestID: hamm
   test("Hamming Distance") {
     val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
     val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
     assert(seq1.getHammingDistance(seq2) == 7)
   }
-/*
+
   // TestID: prot
   test("Translate to Protein") {
     val seq1 = RNASequence("TestID: prot", "AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA")

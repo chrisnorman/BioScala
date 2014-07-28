@@ -10,6 +10,9 @@ package cmn397.bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 
+// TODO: Future
+import scala.concurrent.Future
+
 // TODO: Input trait for Iteratee for incrementally processing streams of input.
 
 trait Input[+E] {
@@ -28,7 +31,7 @@ trait Iteratee[E, R] {
 
   /**
    * Retrieves the result of this Iteratee/computation. If necessary, it will push an EOF to
-   * the continuation to force the.
+   * the continuation to force the result.
    * 
    * NOTE: if there is remaining input when this is called, the iteratee can still consume
    * more input starting with that remaining input.

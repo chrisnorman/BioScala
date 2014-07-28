@@ -18,10 +18,9 @@ import cmn397.bioscala.gentypes._
  */
 
 object RNASequence {
-  def apply(id: String, seq: String) = {
-    new RNASequence(id, new SequenceSourceString(seq))
-  }
 
+  def apply(id: String, seq: String) = { new RNASequence(id, new SequenceSourceString(seq)) }
+  def apply(id: String, src: SequenceSource) = { new RNASequence(id, src) }
   def apply(fName: String) = {
     // TODO: PARSING - FASTA file sequence is named after the file rather than the tag
     new RNASequence(fName, new SequenceSourceFASTA(fName))
@@ -30,6 +29,8 @@ object RNASequence {
 
 class RNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = RNAAlphabet
+
+  def reify: Try[RNASequence] = src.reify.map(s => RNASequence(id, s))
 
   override final def countBases: Try[(Long, Long, Long, Long)] = {
     val counter = Iteratee.fold[Char, (Long, Long, Long, Long)](0, 0, 0, 0)((r, e) =>
