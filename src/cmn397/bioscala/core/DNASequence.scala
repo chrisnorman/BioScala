@@ -27,7 +27,8 @@ object DNASequence {
 class DNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = DNAAlphabet
 
-  def reify: Try[DNASequence] = src.reify.map(s => DNASequence(id, s))
+  override def reify: Try[DNASequence] = src.reify.map(s => DNASequence(id, s))
+  override def reverse: Try[DNASequence] = src.reverse.map(s => new DNASequence("Reverse of: " + this.id, s))
 
   /** Returns the RNASequence representing by this DNASequence. */
   def transcribe: Try[RNASequence] = {
@@ -40,12 +41,7 @@ class DNASequence(override val id: String, override val src: SequenceSource) ext
   def reverseComplement: Try[DNASequence] = {
     val complementMap = Map[Char, Char](
       'A' -> 'T', 'a' -> 't', 'T' -> 'A', 't' -> 'a', 'C' -> 'G', 'c' -> 'g', 'G' -> 'C', 'g' -> 'c')
-    val transformAndPack = SequenceCache.packedCacheGenerator.mapInput(complementMap)
-    for {
-      tryCache <- src.enumerate(transformAndPack).result
-      cache <- tryCache
-      seq = DNASequence("Reverse complement of " + id, new SequenceSourceReverseCache(cache))
-    } yield seq
+    src.reverse.map(s => DNASequence("Reverse complement of: " + id, new SequenceSourceMappedLinear(s, complementMap)))
   }
 
   override final def countBases: Try[(Long, Long, Long, Long)] = {

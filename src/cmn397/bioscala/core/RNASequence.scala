@@ -30,7 +30,8 @@ object RNASequence {
 class RNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = RNAAlphabet
 
-  def reify: Try[RNASequence] = src.reify.map(s => RNASequence(id, s))
+  override def reify: Try[RNASequence] = src.reify.map(s => RNASequence(id, s))
+  override def reverse: Try[RNASequence] = src.reify.map(s => new RNASequence("Reverse of: " + this.id, s))
 
   override final def countBases: Try[(Long, Long, Long, Long)] = {
     val counter = Iteratee.fold[Char, (Long, Long, Long, Long)](0, 0, 0, 0)((r, e) =>

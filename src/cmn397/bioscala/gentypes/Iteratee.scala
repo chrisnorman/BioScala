@@ -10,9 +10,6 @@ package cmn397.bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 
-// TODO: Future
-import scala.concurrent.Future
-
 // TODO: Input trait for Iteratee for incrementally processing streams of input.
 
 trait Input[+E] {

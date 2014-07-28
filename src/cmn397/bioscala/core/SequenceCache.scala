@@ -70,9 +70,9 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 
 // NOTE: the packed encoding does NOT preserve case in the sequence characters, and always yields
 // lower case chars
-// NOTE: the length of the vector is limited by the size of MAXINT; theoretically this could be
-// extended to handle sequences longer than 2MB by using long indices for the cache and mapping
-// them to int indices for the vector
+// NOTE: the length of the vector is limited by the range of Int. This could be extended to handle
+// sequences longer than 2MB by using long indices for the cache and mapping them to Int indices
+// for the vector since the vector is packed and only takes 1/4n entries to store n values.
 class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) extends SequenceCache {
 
   def this() 		= this(Vector[Int](), 0)
@@ -84,10 +84,10 @@ class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) ex
   private def globalIndex(i: Int)	= i / N
   private def localIndex(i: Int)	= i % N
   
-  private val lowerToInt 		= Map[Char, Int]('a' -> 0, 'c' -> 1, 'g' -> 2, 't' -> 3)
-  private val lowerFromInt		= Map[Int, Char](0 -> 'a', 1 -> 'c', 2 -> 'g', 3 -> 't')
-  private def toInt(ch: Char) 	= lowerToInt(ch.toLower)
-  private def fromInt(v: Int) 	= lowerFromInt(v)
+  private val upperToInt 		= Map[Char, Int]('A' -> 0, 'C' -> 1, 'G' -> 2, 'T' -> 3)
+  private val upperFromInt		= Map[Int, Char](0 -> 'A', 1 -> 'C', 2 -> 'G', 3 -> 'T')
+  private def toInt(ch: Char) 	= upperToInt(ch.toUpper)
+  private def fromInt(v: Int) 	= upperFromInt(v)
 
   private def updateAt(i: Int, ch: Char) = vCache(globalIndex(i)) | toInt(ch) << (localIndex(i) * S)
   def valueAt(i: Int): Char = fromInt(vCache(globalIndex(i)) >> (localIndex(i) * S) & M)

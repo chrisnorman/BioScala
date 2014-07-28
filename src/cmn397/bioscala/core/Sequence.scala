@@ -16,22 +16,23 @@ import cmn397.bioscala.gentypes._
  * Base class for all bio sequences.
  */
 
-// TODO: need to validate enumerate against alphabet
+// NOTE: the length of these sequences is limited by the range of an Int (Int.MaxValue).
 abstract class Sequence(val id: String, val src: SequenceSource) {
+
+  // TODO: need to validate enumerate against alphabet
   val alpha: Alphabet[Char]
   
   def apply(i: Int): Try[Char] = src(i)
-
+  def reify: Try[Sequence] // read this sequence into memory for random access if it isn't already cached
+  def reverse: Try[Sequence]
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = src.enumerate(_)
   def getSequenceString(nChars: Option[Long] = None) = src.getSequenceString(nChars)
-  def reify: Try[Sequence] // read this sequence into memory for random access
 
   /**
    * Returns the Hamming distance between this sequence and the target sequence.
    */
-
-  def getHammingDistance(targetSeq: Sequence): Long = {
-    val ham = Iteratee.fold[(Option[Char], Option[Char]), Long](0)((r, e) => {
+  def getHammingDistance(targetSeq: Sequence): Int = {
+    val hammIt = Iteratee.fold[(Option[Char], Option[Char]), Int](0)((r, e) => {
       e match {
         case (Some(c1), Some(c2)) => r + (if (c1 == c2) 0 else 1)
         case (Some(c), None) => r + 1
@@ -39,10 +40,18 @@ abstract class Sequence(val id: String, val src: SequenceSource) {
         case (None, None) => r
       }
     })
-    val seq1 = this.reify
-    val seq2 = targetSeq.reify
-    // TODO Implement this
-    -1
+
+    def getHamm(seq1: Sequence, seq2: Sequence): Int = {
+      // TODO: implement this
+      -1
+    }
+    // simulate enumeration via iteration
+    val dist = for {
+      seq1 <- this.reify
+      seq2 <- targetSeq.reify
+    } yield getHamm(seq1, seq2)
+    
+    dist.getOrElse(-1)
   }
 
   // @FIX: Do something better than brute force motif search
