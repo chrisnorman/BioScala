@@ -19,7 +19,6 @@ trait SequenceCache extends Enumerator[Char] {
 
   def append(c: Char): SequenceCache
   def apply(index: Int): Try[Char]
-  def getIterator: Iterator[Char]
 
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
   def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
@@ -67,11 +66,6 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 
   def append(c: Char): SequenceCache = new SequenceCacheUnpacked(vCache :+ c, length + 1)
   def apply(i: Int): Try[Char] = Try(vCache(i))
-  def getIterator: Iterator[Char] = new Iterator[Char] {
-    var i = 0
-    def hasNext: Boolean = i < length
-    def next: Char = {val ret = vCache(i); i+=1; ret}
-  }
 }
 
 // NOTE: the packed encoding does NOT preserve case in the sequence characters, and always yields
@@ -82,12 +76,6 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) extends SequenceCache {
 
   def this() = this(Vector[Int](), 0)
-
-  def getIterator: Iterator[Char] = new Iterator[Char] {
-    var i = 0
-    def hasNext: Boolean = i < length
-    def next: Char = {val ret = valueAt(i); i+=1; ret}
-  }
 
   private val S 	= 2							// # of bits per char
   private val N 	= 32 / S					// chars per int
@@ -102,8 +90,7 @@ class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) ex
   private def fromInt(v: Int) 	= upperFromInt(v)
 
   private def updateAt(i: Int, ch: Char) = vCache(globalIndex(i)) | toInt(ch) << (localIndex(i) * S)
-  private def valueAt(i: Int) = fromInt(vCache(globalIndex(i)) >> (localIndex(i) * S) & M)
-  def apply(i: Int): Try[Char] = Try(valueAt(i))
+  def apply(i: Int): Try[Char] = Try(fromInt(vCache(globalIndex(i)) >> (localIndex(i) * S) & M))
 
   def append(c: Char): SequenceCachePacked = {
     if (length == Int.MaxValue) throw new IllegalArgumentException

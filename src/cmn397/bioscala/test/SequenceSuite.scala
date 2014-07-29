@@ -18,7 +18,7 @@ import cmn397.bioscala.core._
 
 @RunWith(classOf[JUnitRunner])class SequenceSuite extends FunSuite {
 
-  test("Sequence") {
+  test("Sequence: Create") {
     val seq = DNASequence("TestID", "AAAACCCGGT")
     assert(seq.getSequenceString(None) == "AAAACCCGGT")
   }
@@ -38,7 +38,7 @@ import cmn397.bioscala.core._
     assert(content.get - 53.75 < .001)
   }
 
-  test("Packed Cache with Reversed Source") {
+  test("Cache: Packed with Reversed Source") {
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     // force the sequence into a packed cache, then reverse it
     val packIt = SequenceCache.packedCacheGenerator
@@ -51,7 +51,7 @@ import cmn397.bioscala.core._
     assert(revSeq.isSuccess && revSeq.get.getSequenceString(None) == "TGGCCCAAAA")
   }
 
-  test("Packed, Mapped Cache with Reversed Source") {
+  test("Cache: Packed, Mapped with Reversed Source") {
     // force the sequence into a packed cache, map it, then reverse it
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     val complementMap = Map[Char, Char](
@@ -66,7 +66,7 @@ import cmn397.bioscala.core._
     assert(mappedRevSeq.isSuccess && mappedRevSeq.get.getSequenceString(None) == "ACCGGGTTTT")
   }
 
-  test("Packed Cache with Reversed, Mapped Source") {
+  test("Cache: Packed with Reversed, Mapped Source") {
     // force the sequence into a packed cache, reverse it
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     val packIt = SequenceCache.packedCacheGenerator
@@ -85,15 +85,6 @@ import cmn397.bioscala.core._
     assert(mappedSeq.getSequenceString(None) == "ACCGGGTTTT")
   }
 
-  // TestID: hamm
-  test("Hamming Distance") {
-    val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
-    val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
-    val tDist = seq1.getHammingDistance(seq2)
-    assert(tDist.isSuccess && tDist.get == 7)
-  }
-
- /*
   // TestID: revc
   test("Sequence: Reverse Complement") {
     val revComp = DNASequence("TestID: revc", "AAAACCCGGT").reverseComplement
@@ -101,7 +92,7 @@ import cmn397.bioscala.core._
     val s = revComp.get.getSequenceString()
     assert(s == "ACCGGGTTTT")
   }
-
+ 
   test("Sequence: Reverse Complement of Reverse Complement") {
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     val revRevSeq = seq.reverseComplement.flatMap(s => s.reverseComplement)
@@ -110,11 +101,27 @@ import cmn397.bioscala.core._
     assert(revRevSeq.get.getSequenceString(None) == seq.getSequenceString(None))
   }
 
-   // TestID: rna
+  // TestID: hamm
+  test("Sequence: Hamming Distance") {
+    val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
+    val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
+    val tDist = seq1.getHammingDistance(seq2)
+    assert(tDist.isSuccess && tDist.get == 7)
+  }
+
+  // TestID: rna
   test("Sequence: DNA Transcription") {
     val rnaSeq = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
     val s = rnaSeq.get.getSequenceString(None)
     assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString(None) == "GAUGGAACUUGACUACGUAAAUU")
+  }
+
+  /*
+  // TestID: subs
+  test("Find Literal Motif") {
+    val dnaSeq = DNASequence("TestID: subs", "GATATATGCATATACTT")
+    val f = dnaSeq.findLiteralMotif("ATAT")
+    assert(dnaSeq.findLiteralMotif("ATAT") == List(2, 4, 10))
   }
 
   // TestID: prot
@@ -122,13 +129,6 @@ import cmn397.bioscala.core._
     val seq1 = RNASequence("TestID: prot", "AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA")
     val prt = seq1.translate.getS.toVector
     assert(prt == "MAMAPRTEINSTRING".toVector)
-  }
-
-  // TestID: subs
-  test("Find Literal Motif") {
-    val dnaSeq = DNASequence("TestID: subs", "GATATATGCATATACTT")
-    val f = dnaSeq.findLiteralMotif("ATAT")
-    assert(dnaSeq.findLiteralMotif("ATAT") == List(2, 4, 10))
   }
 
   // TestID: mprt

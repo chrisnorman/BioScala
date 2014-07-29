@@ -19,11 +19,12 @@ import cmn397.bioscala.filehandlers.FASTAFileSource
  * which can be processed by enumerator/iteratee pairs.
  *
  */
-trait SequenceSource extends Enumerator[Char] {
+trait SequenceSource extends Enumerator[Char] with Iterable[Char] {
   
   def apply(i: Int): Try[Char]
   def reify: Try[SequenceSource]
   def reverse: Try[SequenceSource]
+  def iterator: Iterator[Char]
   private final val maxChars = 20
   override def toString: String = getSequenceString(Some(maxChars))
   def getSequenceString(nChars: Option[Long] = None): String = {
@@ -43,13 +44,13 @@ trait SequenceSource extends Enumerator[Char] {
       case Failure(t) => "getChars failed: " + t.getMessage
     }
   }
-
 }
 
-class SequenceSourceString(val seqStr: String) extends SequenceSource {
+class SequenceSourceString(val seqStr: String) extends SequenceSource with Iterable[Char] {
 
   override def apply(i: Int): Try[Char] = Try(seqStr(i))
   override def reify = Try(this)
+  override def iterator: Iterator[Char] = seqStr.iterator
   override def reverse: Try[SequenceSource] = {
     // force this into memory so we can use a reverse cache; presumably, since the source is a string,
     // its not that big anyway..
@@ -78,15 +79,18 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource {
 
 /*
  * This source is backed by a FASTA file. Note that in order to reverse or access a FASTA File SequenceSource
- * by index, it must first reified into memory via a cached source (see below).
+ * by index or iterate over it, it must first be reified into memory via a cached source (see below).
  */
 class SequenceSourceFASTA(fileName: String) extends SequenceSource {
 
   override def apply(i: Int): Try[Char] = Failure(new IllegalStateException("FASTA File source must be reified for random access"))
+  // TODO: this iterates over a temporary reified Source which is inefficient
+  override def iterator = this.reify.map(s => s.iterator).get
   override def reify: Try[SequenceSource] = {
     for {
       tryCache <- enumerate(SequenceCache.packedCacheGenerator).result
       cache <- tryCache
+      _ = println("riefying")
       src = new SequenceSourceCache(cache)
     } yield src
   }
@@ -118,6 +122,7 @@ class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Cha
   override def reify = src.reify.map(s => new SequenceSourceMappedLinear(s, transform))
   override def reverse: Try[SequenceSourceMappedLinear] = src.reverse.map(s => new SequenceSourceMappedLinear(s, transform))
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = ite => src.enumerate(ite.mapInput(transform))
+  override def iterator = src.iterator
 }
 
 /*
@@ -129,6 +134,11 @@ class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
   override def reify = Try(this)
   override def reverse: Try[SequenceSourceReverseCache] = Try(new SequenceSourceReverseCache(cache))
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerate
+  override def iterator: Iterator[Char] = new Iterator[Char] {
+    var i = 0
+    def hasNext: Boolean = i < cache.length
+    def next: Char = {val ret = cache(i); i+=1; ret.get}
+  }
 }
 
 /*
@@ -143,4 +153,10 @@ class SequenceSourceReverseCache(val cache: SequenceCache) extends SequenceSourc
   override def reify = Try(this)
   override def reverse: Try[SequenceSourceCache] = Try(new SequenceSourceCache(cache))
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerateReverse
+  override def iterator: Iterator[Char] = new Iterator[Char] {
+    var i = 0
+    def hasNext: Boolean = i < cache.length
+    def next: Char = {val ret = cache(cache.length - 1 - i); i+=1; ret.get}
+  }
 }
+

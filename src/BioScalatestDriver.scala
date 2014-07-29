@@ -38,31 +38,33 @@ object BioScalaTestDriver {
      			println(tseq)
       
      case 3 => // TestID: revc
-       			val seq = DNASequence(getTestFileDir + "thammdist1.FASTA")
+       			val inputFile = getTestFileDir + "trevc.txt"
+      			val seq2 = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
+     			val s = seq2.reverseComplement.get.getSequenceString()
+     			println(s)
+   
+      case 4 => // TestID: hamm
+		        //val List(s1, s2) = Source.fromFile(getTestFileDir + "thamm.txt").getLines.toList
+		        //val seq1 = DNASequence("hamming 1", s1)
+		        //val seq2 = DNASequence("hamming 2", s2)
+      			//println(seq1.getHammingDistance(seq2))
+
+      			val seq = DNASequence(getTestFileDir + "thammdist1.FASTA")
        			val targ = DNASequence(getTestFileDir + "thammdist2.FASTA")
        			val dist = targ.getHammingDistance(seq)
        			println("Hamming distance: " + dist)
 
-       			val jimmy = targ.src.enumerate(Iteratees.take(3))
+      case 5 =>
+      			val seq = DNASequence("id", "acgt")
+      			val tk = seq.enumerate(Iteratees.take(5))
+      			val tkRt = s
 
-       			val revComp = seq.reverseComplement
-       			println(revComp)
-
-       			val inputFile = getTestFileDir + "trevc.txt"
-      			val seq2 = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
-     			val s = seq2.reverseComplement.get.getSequenceString()
-/*   
-      case 4 => // TestID: gc
+/*
+      case 5 => // TestID: gc
 		        val ff = new FASTAFileReader(getTestFileDir + "tgc.fasta")
 		        val mList = ff.getSequenceList.map(_.getGCContent)
 		        mList.map(println)
 		        println (mList.max)
-
-      case 5 => // TestID: hamm
-		        val List(s1, s2) = Source.fromFile(getTestFileDir + "thamm.txt").getLines.toList
-		        val seq1 = DNASequence("hamming 1", s1)
-		        val seq2 = DNASequence("hamming 2", s2)
-      			println(seq1.getHammingDistance(seq2))
 
       case 6 => // TestID: perm
       			val l = (1 to 5).toList.permutations
@@ -73,12 +75,12 @@ object BioScalaTestDriver {
       			val seq = RNASequence("test", Source.fromFile(inputFile).getLines.mkString)
       			println(seq.translate)
 
-      case 8 => //TestID: subs
+      case 8 => // TestID: subs
         		val List(s, p) = Source.fromFile(getTestFileDir + "tsubs.txt").getLines.toList
         		val dnaSeq = DNASequence("id", s)
       			println(dnaSeq.findLiteralMotif(p))
 
-      case 9 => //TestID: cons
+      case 9 => // TestID: cons
 		         val ff = new FASTAFileReader(getTestFileDir + "tcons.fasta")
 		         val fList = ff.getSequenceList
 		         val (profile, consensus) = SequenceAnalysis.getConsensusProfileAndString(fList)
@@ -128,7 +130,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(3)
+    doBioScala(4)
   }
 
 /*
