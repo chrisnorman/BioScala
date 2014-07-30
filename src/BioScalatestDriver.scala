@@ -19,7 +19,6 @@ import cmn397.bioscala.gentypes._
 /**
  * Test driver application for exercising  BioScala functions.
  */
-
 object BioScalaTestDriver {
 
   // location of test data files
@@ -55,9 +54,15 @@ object BioScalaTestDriver {
        			println("Hamming distance: " + dist)
 
       case 5 =>
-      			val seq = DNASequence("id", "acgt")
-      			val tk = seq.enumerate(Iteratees.take(5))
-      			val tkRt = s
+
+     			val seq = DNASequence("id", "aacccgtaacgtg")
+      			val res = seq.enumerate {
+     			  for {
+     			    a <- Iteratees.take[Char](5)
+      			    b <- Iteratees.takeRight[Char](5)
+      			  } yield (a, b)
+     			}.result
+      			println(res.get)
 
 /*
       case 5 => // TestID: gc
@@ -130,7 +135,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(4)
+    doBioScala(5)
   }
 
 /*

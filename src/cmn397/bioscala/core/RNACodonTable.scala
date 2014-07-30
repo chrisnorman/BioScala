@@ -7,7 +7,7 @@
  */
 package cmn397.bioscala.core
 
-/*
+/**
  * Table of codons for RNA sequence translation.
  */
 object RNACodonTable extends CodonTable {

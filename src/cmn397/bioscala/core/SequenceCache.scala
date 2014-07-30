@@ -13,13 +13,18 @@ import scala.util.{ Try, Success, Failure }
 
 import cmn397.bioscala.gentypes._
 
-trait SequenceCache extends Enumerator[Char] {
+/**
+ * 
+ */
+trait SequenceCache
+  extends Enumerator[Char]
+  //with Traversable[Char]
+{
 
   val length: Int
 
   def append(c: Char): SequenceCache
   def apply(index: Int): Try[Char]
-
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
   def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
 
@@ -42,6 +47,9 @@ trait SequenceCache extends Enumerator[Char] {
   }
 }
 
+/**
+ * 
+ */
 object SequenceCache {
   /**
    * Return an iteratee which generates a populated, *unpacked* SequenceCache, suitable for acting as
@@ -60,6 +68,9 @@ object SequenceCache {
   }
 }
 
+/**
+ * 
+ */
 class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int) extends SequenceCache {
 
   def this() = this(Vector[Char](), 0)
@@ -68,15 +79,21 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
   def apply(i: Int): Try[Char] = Try(vCache(i))
 }
 
-// NOTE: the packed encoding does NOT preserve case in the sequence characters, and always yields
-// lower case chars
-// NOTE: the length of the vector is limited by the range of Int. This could be extended to handle
-// sequences longer than 2MB by using long indices for the cache and mapping them to Int indices
-// for the vector since the vector is packed and only takes 1/4n entries to store n values.
+/**
+ * NOTE: the packed encoding does NOT preserve case in the sequence characters, and always
+ * yields upper case chars.
+ * 
+ * NOTE: the length of the vector is limited by the range of Int. (This could be extended
+ * to handle longer sequences by using long indices for the sequence itself, and mapping
+ * them here to Int indices for the vector, since the vector is packed and only takes 1/16n
+ * entries to store n values.
+ * 
+ */
 class SequenceCachePacked private[core](vCache: Vector[Int], val length: Int) extends SequenceCache {
 
   def this() = this(Vector[Int](), 0)
 
+  // TODO: use the alphabet to determine bits/char rather than hardcoding to 2
   private val S 	= 2							// # of bits per char
   private val N 	= 32 / S					// chars per int
   private val M		= (1 << S) -1

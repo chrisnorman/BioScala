@@ -17,12 +17,16 @@ import cmn397.bioscala.gentypes._
  * Base class for all bio sequences.
  */
 // NOTE: the length of these sequences is limited by the range of an Int (Int.MaxValue).
-abstract class Sequence(val id: String, val src: SequenceSource) {
+abstract class Sequence(val id: String, val src: SequenceSource)
+  extends Traversable[Char]
+  with Enumerator[Char]
+{
 
   // TODO: need to validate enumerate against alphabet
   val alpha: Alphabet[Char]
   
   def apply(i: Int): Try[Char] = src(i)
+  def foreach[U](f: Char => U) = src.foreach(f)
   def reify: Try[Sequence] // read this sequence into memory for random access if it isn't already cached
   def reverse: Try[Sequence]
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = src.enumerate(_)

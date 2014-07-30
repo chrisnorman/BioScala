@@ -10,6 +10,9 @@ package cmn397.bioscala.core
 
 import scala.util.{ Try, Success, Failure }
 
+/**
+ * 
+ */
 object ProteinSequence {
 
   def apply(id: String, seq: String) = new ProteinSequence(id, new SequenceSourceString(seq))

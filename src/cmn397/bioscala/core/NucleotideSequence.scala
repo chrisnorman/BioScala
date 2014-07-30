@@ -13,7 +13,6 @@ import scala.util.{ Try, Success, Failure }
 /**
  * Base class for all sequences of nucleotides (DNASequence and RNASequence).
  */
-
 abstract class NucleotideSequence private[core](override val id: String, override val src: SequenceSource)
 	extends Sequence(id, src) {
 

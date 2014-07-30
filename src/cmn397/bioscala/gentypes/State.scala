@@ -8,8 +8,10 @@
 
 package cmn397.bioscala.gentypes
 
-// State action
-
+/**
+ * State action
+ * 
+ */
 object State {
   def unit[S, A](a: A): State[S, A] = State(s => (a, s))
 }

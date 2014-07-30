@@ -14,13 +14,11 @@ import scala.util.control.NonFatal
 
 import cmn397.bioscala.gentypes._
 
-// Enumerator that enumerates sequences: each sequence has an enumerator that handles it's bytes
 /**
  * FASTA File sequence source: Source stream for a single sequence
  */
-
 class FASTAFileSource(fileName: String) extends FASTAFileParser {
-  /**
+  /*
    * Creates and returns a FASTAFileSource for the file named by fileName.
    */
   def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {

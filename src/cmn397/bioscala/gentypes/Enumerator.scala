@@ -11,7 +11,11 @@ package cmn397.bioscala.gentypes
 import scala.util.{ Try, Success, Failure }
 import scala.annotation.tailrec
 
-// Enumerates elements of type E.
+/**
+ * Enumerates elements of type E.
+ * 
+ */
+// TODO should this be called enumerable ?
 trait Enumerator[E] { self =>
 
   def enumerate[R]: Iteratee[E, R] => Iteratee[E, R]

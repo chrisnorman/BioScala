@@ -10,12 +10,15 @@ package cmn397.bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 
+/**
+ * 
+ */
 // TODO: Input trait for Iteratee for incrementally processing streams of input.
-
 trait Input[+E] {
   def map[U](f: E => U): Input[U] = this match {
     case Element(e) => Element(f(e))
     case Pending => Pending
+    // TODO: Pending and EndOfInput should be objects defined in Object Input so there is only one instance
     case EndOfInput => EndOfInput
   }
 }
@@ -24,9 +27,12 @@ case class Element[E](e: E) extends Input[E]
 case object Pending extends Input[Nothing]
 case object EndOfInput extends Input[Nothing]
 
+/**
+ * 
+ */
 trait Iteratee[E, R] {
 
-  /**
+  /*
    * Retrieves the result of this Iteratee/computation. If necessary, it will push an EOF to
    * the continuation to force the result.
    * 
@@ -44,7 +50,7 @@ trait Iteratee[E, R] {
       }
   }
   
-  /**
+  /*
    * Returns an Iteratee that maps the values from the enumerator BEFORE they are passed to the
    * input handler/continuation (as opposed to mapping the Iteratee itself, which maps the computational
    * result of the Iteratee after the fact).
@@ -59,12 +65,14 @@ trait Iteratee[E, R] {
     case other @_ => other
   }
 
-  /**
+  /*
    * Debugging: display the state of this Iteratee on stdout.
+   * 
    */ 
  def showState() = this match {
-    case Done(_, Pending) => println("Iteratee: Done pending more input")
-    case Done(_, EndOfInput) => println("Iteratee: Done end of input")
+    case Done(_, Pending) => println("Iteratee: Done, pending")
+    case Done(_, EndOfInput) => println("Iteratee: Done, end of input")
+    case Done(_, Element(e)) => println("Iteratee: Done, with remaining input")
     case Error(_) => println("Iteratee: Error")
     case Continue(_) => println("Iteratee: Continue")
     case _ => println("Iteratee: some other outcome")
@@ -80,35 +88,53 @@ trait Iteratee[E, R] {
    * and the resulting Iteratee can continue consuming input.
    */
   def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U]
+
+  // TODO: def foreach[]
 }
 
-
+/**
+ * 
+ */
 case class Continue[E, R](k: Input[E] => Iteratee[E, R]) extends Iteratee[E, R] {
-  def map[U](f: R => U): Iteratee[E, U] 					= Continue(el => k(el) map f)
-  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] 	= Continue(el => k(el) flatMap f)
+  def map[U](f: R => U): Iteratee[E, U] 					= Continue(e => k(e) map f)
+  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] 	= Continue(e => k(e) flatMap f)
 }
 
+/**
+ * 
+ */
 case class Done[E, R](res: R, remainingInput: Input[E]) extends Iteratee[E, R] {
   //def fold[R](folder: Step[E, R] => folder(Done... James Rope slide 14:06
   def map[U](f: R => U): Iteratee[E, U] = Done(f(res), remainingInput)
-  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] = f(res)
+  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] = {
+    f(res) match {
+      case Continue(k) => k(remainingInput)
+      case Done(res2, _) => Done(res2, remainingInput)
+      case other @ _ => other
+    }
+  }
 }
 
+/**
+ * 
+ */
 case class Error[E, R](t: Throwable) extends Iteratee[E, R] {
   def map[U](f: R => U): Iteratee[E, U] = Error(t)
   def flatMap[U](f2: R => Iteratee[E, U]): Iteratee[E, U] = Error(t)
 }
 
+/**
+ * 
+ */
 object Iteratee {
 
-  /**
+  /*
    * Create a basic Iteratee with simple Done/Error processing, parameterized with a continuation
    * function "f" that will handle the (R, E) => R (input to new state) transformation.
    * 
    * NOTE: the iteratee terminates the enumerator when the continuation receives "Pending" input.
    * TODO: Not sure if terminating on Pending is the right thing....
    */
-
   def fold[E, R](state: R)(f: (R, E) => R): Iteratee[E, R] = {
     def step(r: R): Input[E] => Iteratee[E, R] = in =>
       in match {

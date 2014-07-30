@@ -24,6 +24,9 @@ object DNASequence {
   def apply(id: String, src: SequenceSource) = new DNASequence(id, src)
 }
 
+/**
+ * 
+ */
 class DNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = DNAAlphabet
 

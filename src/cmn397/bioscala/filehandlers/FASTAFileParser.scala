@@ -10,6 +10,9 @@ package cmn397.bioscala.filehandlers
 
 import cmn397.bioscala.gentypes._
 
+/**
+ * 
+ */
 trait FASTAFileParser {
 
   // Handles eol characters (\r, \n) and the start of new sequences for FASTA files

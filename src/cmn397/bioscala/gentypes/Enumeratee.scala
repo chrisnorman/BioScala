@@ -17,6 +17,10 @@ object Enumeratee {
   def map[A](f: From => A): Enumeratee[From, To] 
 }
 */
+
+/**
+ * 
+ */
 trait Enumeratee[From, To] {
 //create am Enumeratee using the map method on Enumeratee
 //val toInt: Enumeratee[String,Int] = Enumeratee.map[String]{ s => s.toInt }

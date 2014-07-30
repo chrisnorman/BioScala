@@ -16,7 +16,6 @@ import cmn397.bioscala.gentypes._
  * A sequence of RNA nucleotides.
  * 
  */
-
 object RNASequence {
 
   def apply(id: String, seq: String) = { new RNASequence(id, new SequenceSourceString(seq)) }
@@ -27,6 +26,9 @@ object RNASequence {
   }
 }
 
+/**
+ * 
+ */
 class RNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
   val alpha = RNAAlphabet
 

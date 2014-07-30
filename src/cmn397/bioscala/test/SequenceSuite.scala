@@ -16,6 +16,9 @@ import scala.util.{ Try, Success, Failure }
 
 import cmn397.bioscala.core._
 
+/**
+ * 
+ */
 @RunWith(classOf[JUnitRunner])class SequenceSuite extends FunSuite {
 
   test("Sequence: Create") {
