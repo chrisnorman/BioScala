@@ -9,48 +9,62 @@
 package cmn397.bioscala.filehandlers
 
 import scala.annotation.tailrec
+
+import cmn397.Macros._
+
 import scala.io.BufferedSource
 import scala.util.control.NonFatal
+import scala.util.{ Try, Success, Failure }
 
 import cmn397.bioscala.gentypes._
 
 /**
- * FASTA File sequence source: Source stream for a single sequence
+ * FASTA File sequence source: source stream for a single sequence
  */
-class FASTAFileSource(fileName: String) extends FASTAFileParser {
+// TODO: PARSING - FASTA file sequence uses the filename for the id rather than
+// the tag inside the file
+class FASTAFileSource(fileName: String) {
   /*
-   * Creates and returns a FASTAFileSource for the file named by fileName.
+   * Enumerates the first sequence in a FASTA file.
    */
-  def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
-    try {
-      val fis = new java.io.FileInputStream(fileName)
-      try {
-        val bs = new BufferedSource(fis)
-        try {
-          val srcIt = bs.iter
-          def loop: Iteratee[Char, R] => Iteratee[Char, R] = {
-        	_ match {
-              case d @ Done(_, _) => d
-              case e @ Error(t) => e
-              case Continue(f) =>
-                try {
-                  loop(nextChar(srcIt, f))
-                }
-                catch {
-                  case NonFatal(ex) => Error(ex)
-                }
-                finally {
-                  bs.close
-                  fis.close
-                }
-              }
-          }
-          // @TODO: PARSING - doesn't generate an error on a non-FASTA file- just happily enumerates whatever
-          // is there...also should save off this header as the sequence ID
-          while (srcIt.hasNext && (srcIt.next != '\n')) {} // skip the first line (header)
-          loop
-        } catch { case NonFatal(ex) => { _ => Error(ex) }}
-      } catch { case NonFatal(ex) => { _ => Error(ex) }}
-    } catch { case ex: Exception => { _ => Error(ex) }}
+  def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = {
+    val tFIS = Try(new java.io.FileInputStream(fileName))
+    if (tFIS.isFailure)
+      Error(tFIS.failed.get)
+    else {
+      val tBS = Try(new BufferedSource(tFIS.get))
+      if (tBS.isFailure) {
+        tFIS.get.close
+        Error(tBS.failed.get)
+      }
+      else {
+        val srcIt = tBS.get.iter
+	    @tailrec
+	    def loop[B](it: Iteratee[Char, B]): Iteratee[Char, B] = {
+	      it match {
+	        case Continue(f) => {
+	          if (srcIt.hasNext) loop(f(Element(srcIt.next)))
+	          else f(EndOfInput)
+	        }
+	        case o @ other => {println("loop other: " + o); o }
+	      }
+	    }
+        // skip over the header line; contents is currently discarded although it should be the sequence ID
+        val ret = loop(
+          for {
+            a <- Iteratees.expect('>')
+            b <- Iteratees.takeLine		// eat the FASTA header line
+            c <- Iteratees.takeWhile[Char](c => c != '>')
+            d <- it
+          } yield(b, d)
+        )
+        tBS.get.close
+        tFIS.get.close
+        ret match { // strip off the FASTA header result and return only R
+          case Done(res, rem) => Done(res._2, rem)
+          case Error(ex) => Error(ex)
+        }
+      }
+    }
   }
 }

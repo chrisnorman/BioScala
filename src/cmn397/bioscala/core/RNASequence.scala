@@ -21,7 +21,6 @@ object RNASequence {
   def apply(id: String, seq: String) = { new RNASequence(id, new SequenceSourceString(seq)) }
   def apply(id: String, src: SequenceSource) = { new RNASequence(id, src) }
   def apply(fName: String) = {
-    // TODO: PARSING - FASTA file sequence is named after the file rather than the tag
     new RNASequence(fName, new SequenceSourceFASTA(fName))
   }
 }

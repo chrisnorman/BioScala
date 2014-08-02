@@ -38,16 +38,16 @@ abstract class Sequence(val id: String, val src: SequenceSource)
    * 
    * Ideally, if we had enumerator.zip, we could use this Iteratee:
    * 
-   * val hammIt = Iteratee.fold[(Option[Char], Option[Char]), Int](0)((r, e) => {
-   *   e match {
-   *     case (Some(c1), Some(c2)) => r + (if (c1 == c2) 0 else 1)
-   *     case (Some(c), None) => r + 1
-   *     case (None, Some(c)) => r + 1
-   *     case (None, None) => r
-   *    }
-   *  })
-   *  
-   *  But until then, we'll use an iterator based solution.
+   *   val hammIt = Iteratee.fold[(Option[Char], Option[Char]), Int](0)((r, e) => {
+   *     e match {
+   *       case (Some(c1), Some(c2)) => r + (if (c1 == c2) 0 else 1)
+   *       case (Some(c), None) => r + 1
+   *       case (None, Some(c)) => r + 1
+   *       case (None, None) => r
+   *      }
+   *    })
+   *
+   *  But until then, use an iterator based solution.
    */
   def getHammingDistance(targetSeq: Sequence): Try[Int] = {
     @tailrec

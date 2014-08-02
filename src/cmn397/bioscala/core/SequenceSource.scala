@@ -24,7 +24,8 @@ trait SequenceSource
   with Traversable[Char]
   with Iterable[Char]
 {
-  
+
+  // TODO: add tests for all iterators (i.e. make sure transformed sources are transformed, etc.
   def apply(i: Int): Try[Char]
   override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R]
   override def foreach[U](f: Char => U) = enumerate(Iteratee.fold[Char, Unit](Unit)((r, e) => f(e)))
@@ -97,14 +98,23 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource
 }
 
 /**
- * This source is backed by a FASTA file. Note that in order to reverse or access a FASTA File SequenceSource
- * by index or iterate over it, it must first be reified into memory via a cached source (see below).
+ * This source is backed by a FASTA file; only the first sequence in the file is represented
+ * (a multi-sequence FAST file can be read with FASTAFileReader).
+ * 
+ * NOTE that in order to reverse, access by index, or iterate over a FASTA File SequenceSource
+ * it must first be reified into memory via a cached source (see below).
  */
 class SequenceSourceFASTA(fileName: String) extends SequenceSource {
 
-  override def apply(i: Int): Try[Char] = Failure(new IllegalStateException("FASTA File source must be reified for random access"))
-  // TODO: this iterates over a temporary reified Source, which is awfully inefficient
+  override def apply(i: Int): Try[Char] =
+    Failure(new IllegalStateException("FASTA File source must be reified for random access"))
+  /*
+   *  Note: this iterates over a temporarily reified Source, which is inefficient. Unless
+   *  this is a one-shot iteration, it would be better for the user to reify it into a sequence
+   *  first and then subsequently use that.
+   */
   override def iterator = this.reify.map(s => s.iterator).get
+
   override def reify: Try[SequenceSource] = {
     for {
       tryCache <- enumerate(SequenceCache.packedCacheGenerator).result
@@ -129,10 +139,10 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
 
 /**
  * Source backed by another source that is (lazily) transformed via a 1:1 transformation
- * function (ie, this might represent an RNA sequence which is transformed from a DNA sequence via
- * a transcription function). The original (DNA sequence) source is maintained as the source, and
- * the enumerator just "lifts" any supplied Iteratee so that the step function's input is transformed
- * on demand. 
+ * function (i.e., this might represent an RNA sequence which is transformed from a DNA
+ * sequence via a transcription function). The original (DNA sequence) source is
+ * maintained as the source, and the enumerator just "lifts" any supplied Iteratee so
+ * that the step function's input is transformed on demand. 
  */
 class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Char) extends SequenceSource {
   override def apply(i: Int): Try[Char] = src(i).map(transform)
@@ -160,7 +170,7 @@ class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
 }
 
 /**
- * Source is backed by an-in memory cache that is stored in reverse order. This allows
+ * Source backed by an-in memory cache that is stored in reverse order. This allows
  * a single cache which has been reified from, say, a FASTA file, to be the shared representation
  * for the Sequences that represent the original, forward sequence; the reverse of that sequence;
  * and via SequenceSourceMappedLinear, the complement or transcription of the reverse sequence;

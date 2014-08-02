@@ -54,7 +54,6 @@ object BioScalaTestDriver {
        			println("Hamming distance: " + dist)
 
       case 5 =>
-
      			val seq = DNASequence("id", "aacccgtaacgtg")
       			val res = seq.enumerate {
      			  for {
@@ -64,13 +63,13 @@ object BioScalaTestDriver {
      			}.result
       			println(res.get)
 
-/*
-      case 5 => // TestID: gc
-		        val ff = new FASTAFileReader(getTestFileDir + "tgc.fasta")
-		        val mList = ff.getSequenceList.map(_.getGCContent)
-		        mList.map(println)
-		        println (mList.max)
 
+      case 6 => // TestID: gc
+     			val seq = DNASequence(getTestFileDir + "tcons.fasta")
+     			val res = seq.enumerate(Iteratees.takeRight(8))
+       			println(res.result)
+
+/*
       case 6 => // TestID: perm
       			val l = (1 to 5).toList.permutations
       			println(l)
@@ -135,7 +134,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(5)
+    doBioScala(6)
   }
 
 /*

@@ -19,7 +19,6 @@ import cmn397.bioscala.filehandlers._
 object DNASequence {
 
   def apply(id: String, seq: String) = new DNASequence(id, new SequenceSourceString(seq))
-  // TODO: PARSING - FASTA file sequence uses the filename for the id rather than the tag inside the file
   def apply(fName: String) = new DNASequence(fName, new SequenceSourceFASTA(fName))
   def apply(id: String, src: SequenceSource) = new DNASequence(id, src)
 }

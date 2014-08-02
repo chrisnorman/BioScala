@@ -11,9 +11,9 @@ package cmn397.bioscala.gentypes
 import scala.util.{ Try, Success, Failure }
 
 /**
- * 
+ * Input trait for Iteratee for incrementally processing streams of input.
  */
-// TODO: Input trait for Iteratee for incrementally processing streams of input.
+// TODO: separate Pending from Empty ??
 trait Input[+E] {
   def map[U](f: E => U): Input[U] = this match {
     case Element(e) => Element(f(e))
@@ -89,6 +89,8 @@ trait Iteratee[E, R] {
    */
   def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U]
 
+  def filter(p: (E) => Boolean): Iteratee[E, R]
+
   // TODO: def foreach[]
 }
 
@@ -96,8 +98,17 @@ trait Iteratee[E, R] {
  * 
  */
 case class Continue[E, R](k: Input[E] => Iteratee[E, R]) extends Iteratee[E, R] {
-  def map[U](f: R => U): Iteratee[E, U] 					= Continue(e => k(e) map f)
-  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] 	= Continue(e => k(e) flatMap f)
+  def map[U](f: R => U): Iteratee[E, U] = Continue(e => k(e) map f)
+  def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] = Continue(e => k(e) flatMap f)
+  def filter(p: (E) => Boolean): Iteratee[E, R]	=
+    Continue(e => {
+      e match {
+        case Element(el) =>
+          if (p(el) == true) k(e)
+          else k(EndOfInput)
+        case o @ _ => k(o)
+      }
+    })
 }
 
 /**
@@ -109,10 +120,11 @@ case class Done[E, R](res: R, remainingInput: Input[E]) extends Iteratee[E, R] {
   def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U] = {
     f(res) match {
       case Continue(k) => k(remainingInput)
-      case Done(res2, _) => Done(res2, remainingInput)
+      case Done(res2, r3) => Done(res2, remainingInput)
       case other @ _ => other
     }
   }
+  def filter(p: (E) => Boolean): Iteratee[E, R]	= { println("filter: done"); this }
 }
 
 /**
@@ -121,6 +133,7 @@ case class Done[E, R](res: R, remainingInput: Input[E]) extends Iteratee[E, R] {
 case class Error[E, R](t: Throwable) extends Iteratee[E, R] {
   def map[U](f: R => U): Iteratee[E, U] = Error(t)
   def flatMap[U](f2: R => Iteratee[E, U]): Iteratee[E, U] = Error(t)
+  def filter(p: (E) => Boolean): Iteratee[E, R]	= this
 }
 
 /**
