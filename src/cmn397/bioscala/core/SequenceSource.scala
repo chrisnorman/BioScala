@@ -15,8 +15,8 @@ import cmn397.bioscala.gentypes._
 import cmn397.bioscala.filehandlers.FASTAFileSource
 
 /**
- * Base trait for representing a source of sequence data (i.e., in-memory strings or FASTA files)
- * which can be processed by enumerator/iteratee pairs.
+ * A source of sequence data (i.e., in-memory strings, FASTA files, or cached) which can be
+ * processed either by enumerator/iteratee pairs or by iteration.
  *
  */
 trait SequenceSource
@@ -59,7 +59,7 @@ trait SequenceSource
 }
 
 /**
- * 
+ * Sequence source backed by an in-memory string.
  */
 class SequenceSourceString(val seqStr: String) extends SequenceSource
 {
@@ -98,7 +98,7 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource
 }
 
 /**
- * This source is backed by a FASTA file; only the first sequence in the file is represented
+ * Sequence backed by a FASTA file; only the first sequence in the file is represented
  * (a multi-sequence FAST file can be read with FASTAFileReader).
  * 
  * NOTE that in order to reverse, access by index, or iterate over a FASTA File SequenceSource
@@ -139,8 +139,8 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
 
 /**
  * Source backed by another source that is (lazily) transformed via a 1:1 transformation
- * function (i.e., this might represent an RNA sequence which is transformed from a DNA
- * sequence via a transcription function). The original (DNA sequence) source is
+ * function. (For example, this source might represent an RNA sequence which is transformed
+ * from a DNA sequence via a transcription function). The original (DNA sequence) source is
  * maintained as the source, and the enumerator just "lifts" any supplied Iteratee so
  * that the step function's input is transformed on demand. 
  */
@@ -154,7 +154,7 @@ class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Cha
 }
 
 /**
- * Source is backed by an in memory cache, which may be packed (2 bits/char for DNA)
+ * Sequcen source backed by an in-memory cache, which may be packed (2 bits/char for DNA)
  * or unpacked.
  */
 class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {

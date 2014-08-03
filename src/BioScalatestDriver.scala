@@ -19,6 +19,7 @@ import cmn397.bioscala.gentypes._
 /**
  * Test driver application for exercising  BioScala functions.
  */
+// TODO: enable sbt; hierarchy should match GenScala
 object BioScalaTestDriver {
 
   // location of test data files

@@ -20,9 +20,8 @@ object RNASequence {
 
   def apply(id: String, seq: String) = { new RNASequence(id, new SequenceSourceString(seq)) }
   def apply(id: String, src: SequenceSource) = { new RNASequence(id, src) }
-  def apply(fName: String) = {
-    new RNASequence(fName, new SequenceSourceFASTA(fName))
-  }
+  def apply(fName: String) = new RNASequence(fName, new SequenceSourceFASTA(fName))
+
 }
 
 /**
@@ -62,8 +61,25 @@ class RNASequence(override val id: String, override val src: SequenceSource) ext
   /**
    * Returns true if we can align on a valid start codon followed by a valid stop codon.
    */
-  /*
-  private def hasValidStopCodon : Boolean = {
+
+ /*   private def hasValidStopCodon : Boolean = {
+     enumerate(for {
+        a <- Iteratees.take(3)
+        b <- if (a.length < 3 || !RNACodonTable.isStartCodon(a.mkString))
+     } yield(b))
+    val startORF = getS.grouped(3).toVector.dropWhile(c => (c.length < 3) || (!RNACodonTable.isStartCodon(c.mkString)))
+    if (startORF.isEmpty || startORF.head.length < 3) false // can't even align on start codon
+    else {
+      // should be aligned on a start codon
+      val stopORF = startORF.dropWhile(c => (c.length == 3) && (!RNACodonTable.isStopCodon(c.mkString)))
+      if (stopORF.isEmpty || stopORF.head.length < 3) false
+      else {
+        require(RNACodonTable.isStopCodon(stopORF.head.mkString))
+        true
+      }
+    }
+  }
+   private def hasValidStopCodon : Boolean = {
     val startORF = getS.grouped(3).toVector.dropWhile(c => (c.length < 3) || (!RNACodonTable.isStartCodon(c.mkString)))
     if (startORF.isEmpty || startORF.head.length < 3) false // can't even align on start codon
     else {

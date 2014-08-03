@@ -46,10 +46,12 @@ class FASTAFileSource(fileName: String) {
 	          if (srcIt.hasNext) loop(f(Element(srcIt.next)))
 	          else f(EndOfInput)
 	        }
-	        case o @ other => {println("loop other: " + o); o }
+	        case o @ other => o
 	      }
 	    }
-        // skip over the header line; contents is currently discarded although it should be the sequence ID
+        // skip over the header line; contents is currently discarded although
+        // it should be the sequence ID
+        // TODO: enumeration still doesn'w work properly
         val ret = loop(
           for {
             a <- Iteratees.expect('>')

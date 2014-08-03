@@ -10,10 +10,11 @@ package cmn397.bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 
-/**
- * Input trait for Iteratee for incrementally processing streams of input.
- */
 // TODO: separate Pending from Empty ??
+
+/**
+ * Input element for a computation represented by an Iteratee.
+ */
 trait Input[+E] {
   def map[U](f: E => U): Input[U] = this match {
     case Element(e) => Element(f(e))
@@ -28,16 +29,13 @@ case object Pending extends Input[Nothing]
 case object EndOfInput extends Input[Nothing]
 
 /**
- * 
+ * Consumer of a stream of Input elements of type E, eventually producing a result of type R.
  */
 trait Iteratee[E, R] {
 
   /*
-   * Retrieves the result of this Iteratee/computation. If necessary, it will push an EOF to
-   * the continuation to force the result.
-   * 
-   * NOTE: if there is remaining input when this is called, the iteratee can still consume
-   * more input starting with that remaining input.
+   * Retrieve the result of this Iteratee/computation. For continuations, this method
+   * will push an EOF to force evaluation of the result.
    */
   def result: Try[R] = this match { // this is usually called "run"...
     case Done(res, rem) => Success(res)
@@ -51,9 +49,8 @@ trait Iteratee[E, R] {
   }
   
   /*
-   * Returns an Iteratee that maps the values from the enumerator BEFORE they are passed to the
-   * input handler/continuation (as opposed to mapping the Iteratee itself, which maps the computational
-   * result of the Iteratee after the fact).
+   * Returns a modified Iteratee that maps the values from the enumerator BEFORE they are
+   * passed to the input handler/continuation.
    */
   // TODO: is this rendered obsolete by Enumeratee ??
   def mapInput(inputTransform: E => E): Iteratee[E, R] = this match {
@@ -69,7 +66,7 @@ trait Iteratee[E, R] {
    * Debugging: display the state of this Iteratee on stdout.
    * 
    */ 
- def showState() = this match {
+ def debugShowState() = this match {
     case Done(_, Pending) => println("Iteratee: Done, pending")
     case Done(_, EndOfInput) => println("Iteratee: Done, end of input")
     case Done(_, Element(e)) => println("Iteratee: Done, with remaining input")
@@ -84,8 +81,8 @@ trait Iteratee[E, R] {
   def map[U](f: R => U): Iteratee[E, U]
 
   /**
-   * The result of the completed computation of this Iteratee (R), is passed to the function f
-   * and the resulting Iteratee can continue consuming input.
+   * The result of the completed computation of this Iteratee (of type R), is passed to the
+   * function f and the resulting Iteratee can continue consuming input.
    */
   def flatMap[U](f: R => Iteratee[E, U]): Iteratee[E, U]
 
@@ -95,7 +92,8 @@ trait Iteratee[E, R] {
 }
 
 /**
- * 
+ * Iteratee state representing an computation in progress and ready to accept more
+ * input.
  */
 case class Continue[E, R](k: Input[E] => Iteratee[E, R]) extends Iteratee[E, R] {
   def map[U](f: R => U): Iteratee[E, U] = Continue(e => k(e) map f)
@@ -112,7 +110,7 @@ case class Continue[E, R](k: Input[E] => Iteratee[E, R]) extends Iteratee[E, R] 
 }
 
 /**
- * 
+ * Iteratee state representing a completed computation not requiring further input.
  */
 case class Done[E, R](res: R, remainingInput: Input[E]) extends Iteratee[E, R] {
   //def fold[R](folder: Step[E, R] => folder(Done... James Rope slide 14:06
@@ -128,7 +126,7 @@ case class Done[E, R](res: R, remainingInput: Input[E]) extends Iteratee[E, R] {
 }
 
 /**
- * 
+ * Iteratee state representing an error condition produced by an ongoing computation.
  */
 case class Error[E, R](t: Throwable) extends Iteratee[E, R] {
   def map[U](f: R => U): Iteratee[E, U] = Error(t)
@@ -137,13 +135,14 @@ case class Error[E, R](t: Throwable) extends Iteratee[E, R] {
 }
 
 /**
- * 
+ * Companion object for generation of simple Iteratee with a supplied continuation function.
  */
 object Iteratee {
 
   /*
-   * Create a basic Iteratee with simple Done/Error processing, parameterized with a continuation
-   * function "f" that will handle the (R, E) => R (input to new state) transformation.
+   * Create a basic Iteratee with state propagation and simple Done/Error processing,
+   * parameterized with a continuation function "f" that will handle the (R, E) => R
+   * (input to new state) transformation.
    * 
    * NOTE: the iteratee terminates the enumerator when the continuation receives "Pending" input.
    * TODO: Not sure if terminating on Pending is the right thing....

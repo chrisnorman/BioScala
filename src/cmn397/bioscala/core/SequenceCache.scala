@@ -14,7 +14,7 @@ import scala.util.{ Try, Success, Failure }
 import cmn397.bioscala.gentypes._
 
 /**
- * 
+ * In-memory store for strings of sequence characters.
  */
 trait SequenceCache
   extends Enumerator[Char]
@@ -48,11 +48,11 @@ trait SequenceCache
 }
 
 /**
- * 
+ * Sequence cache iteratee generators.
  */
 object SequenceCache {
   /**
-   * Return an iteratee which generates a populated, *unpacked* SequenceCache, suitable for acting as
+   * Iteratee which generates a populated, *unpacked* SequenceCache, suitable for acting as
    * a backing store for a SequenceSourceCache.
    */
   def unpackedCacheGenerator: Iteratee[Char, Try[SequenceCache]] = {
@@ -60,7 +60,7 @@ object SequenceCache {
   }
 
   /**
-   * Return an iteratee which generates a populated, *packed* SequenceCache, suitable for acting as
+   * Iteratee which generates a populated, *packed* SequenceCache, suitable for acting as
    * a backing store for a SequenceSourceCache.
    */
   def packedCacheGenerator: Iteratee[Char, Try[SequenceCache]] = {
@@ -69,7 +69,7 @@ object SequenceCache {
 }
 
 /**
- * 
+ * An unpacked in-memory store for holding strings of sequence characters.
  */
 class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int) extends SequenceCache {
 
@@ -80,6 +80,9 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
 }
 
 /**
+ * A packed in-memory store for holding strings of sequnce characters in packed bit
+ * representation.
+ * 
  * NOTE: the packed encoding does NOT preserve case in the sequence characters, and always
  * yields upper case chars.
  * 

@@ -9,6 +9,7 @@
 package cmn397.bioscala.gentypes
 
 /**
+ * Iteratee instances for routine consumption of simple patterns.
  * 
  */
 object Iteratees {
