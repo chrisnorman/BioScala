@@ -6,11 +6,11 @@
  *
  */
 
-package cmn397.bioscala.filehandlers
+package bioscala.filehandlers
 
 import scala.util.control.NonFatal
 
-import cmn397.bioscala.gentypes._
+import bioscala.gentypes._
 
 /**
  * 

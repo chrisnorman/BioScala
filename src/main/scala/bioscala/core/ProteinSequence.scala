@@ -6,7 +6,7 @@
  * 
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 import scala.util.{ Try, Success, Failure }
 

@@ -6,7 +6,7 @@
  *
  */
 
-package cmn397.bioscala.gentypes
+package bioscala.gentypes
 
 /**
  * Iteratee instances for routine consumption of simple patterns.

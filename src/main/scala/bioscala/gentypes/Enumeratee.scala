@@ -6,7 +6,7 @@
  *
  */
 
-package cmn397.bioscala.gentypes
+package bioscala.gentypes
 
 /**
  * Combines the roles of an Iteratee[From] and a Enumerator[To].  This allows adapting of streams to that modify input

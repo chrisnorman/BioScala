@@ -6,12 +6,12 @@
  *
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 import scala.annotation.tailrec
 import scala.util.{ Try, Success, Failure }
 
-import cmn397.bioscala.gentypes._
+import bioscala.gentypes._
 
 /**
  * In-memory store for strings of sequence characters.

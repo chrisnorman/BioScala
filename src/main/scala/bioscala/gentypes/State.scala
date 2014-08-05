@@ -6,7 +6,7 @@
  *
  */
 
-package cmn397.bioscala.gentypes
+package bioscala.gentypes
 
 /**
  * State action

@@ -6,7 +6,7 @@
  * 
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 /**
  * Base trait for codon tables.

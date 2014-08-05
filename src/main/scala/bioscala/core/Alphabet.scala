@@ -6,7 +6,7 @@
  * 
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 /**
  * Base class for DNAAlphabet, RNAAlphabet and ProteinAlphabet

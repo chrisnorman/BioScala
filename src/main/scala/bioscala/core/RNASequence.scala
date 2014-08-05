@@ -6,11 +6,11 @@
  *
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 import scala.util.{ Try, Success, Failure }
 
-import cmn397.bioscala.gentypes._
+import bioscala.gentypes._
 
 /**
  * A sequence of RNA nucleotides.

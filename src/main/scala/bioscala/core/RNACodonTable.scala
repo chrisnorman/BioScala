@@ -5,7 +5,8 @@
  * @author Chris Norman (cmn397@gmail.com)
  * 
  */
-package cmn397.bioscala.core
+
+package bioscala.core
 
 /**
  * Table of codons for RNA sequence translation.

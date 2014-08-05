@@ -6,17 +6,17 @@
  *
  */
 
-package cmn397.bioscala.filehandlers
+package bioscala.filehandlers
 
 import scala.annotation.tailrec
 
-import cmn397.Macros._
+import Macros._
 
 import scala.io.BufferedSource
 import scala.util.control.NonFatal
 import scala.util.{ Try, Success, Failure }
 
-import cmn397.bioscala.gentypes._
+import bioscala.gentypes._
 
 /**
  * FASTA File sequence source: source stream for a single sequence

@@ -6,7 +6,7 @@
  *
  */
 
-package cmn397.bioscala.gentypes
+package bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 

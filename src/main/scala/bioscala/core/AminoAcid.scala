@@ -6,7 +6,7 @@
  * 
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 /**
  * Types for Polar/NonPolar and Acidic/Basic amino acids.

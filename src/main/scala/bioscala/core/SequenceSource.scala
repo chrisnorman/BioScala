@@ -6,13 +6,13 @@
  *
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 import scala.annotation.tailrec
 import scala.util.{ Try, Success, Failure }
 
-import cmn397.bioscala.gentypes._
-import cmn397.bioscala.filehandlers.FASTAFileSource
+import bioscala.gentypes._
+import bioscala.filehandlers.FASTAFileSource
 
 /**
  * A source of sequence data (i.e., in-memory strings, FASTA files, or cached) which can be

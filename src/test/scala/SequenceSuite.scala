@@ -6,7 +6,7 @@
  * 
  */
 
-package cmn397.bioscala.test
+package bioscala.test
 
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith
@@ -14,7 +14,7 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.util.{ Try, Success, Failure }
 
-import cmn397.bioscala.core._
+import bioscala.core._
 
 /**
  * 

@@ -6,12 +6,12 @@
  *
  */
 
-package cmn397.bioscala.core
+package bioscala.core
 
 import scala.util.{ Try, Success, Failure }
 import scala.annotation.tailrec
 
-import cmn397.bioscala.gentypes._
+import bioscala.gentypes._
 
 /**
  * Base class for all bio sequences.
