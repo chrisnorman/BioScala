@@ -6,7 +6,6 @@
  * 
  */
 
-package bioscala.test
 
 import org.scalatest.FunSuite
 import org.junit.runner.RunWith

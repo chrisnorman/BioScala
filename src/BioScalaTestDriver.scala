@@ -6,13 +6,9 @@
  * 
  */
 
-package bioscala
-
 import scala.io.Source
 
 import bioscala.core._
-
-
 import bioscala.gentypes._
 
 //import bioscala.filehandlers.FASTAFileReader
