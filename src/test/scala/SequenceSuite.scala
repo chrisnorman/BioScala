@@ -19,7 +19,7 @@ import bioscala.core._
 /**
  * 
  */
-@RunWith(classOf[JUnitRunner])class SequenceSuite extends FunSuite {
+@RunWith(classOf[JUnitRunner]) class SequenceSuite extends FunSuite {
 
   test("Sequence: Create") {
     val seq = DNASequence("TestID", "AAAACCCGGT")

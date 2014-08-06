@@ -10,7 +10,7 @@ package bioscala.filehandlers
 
 import scala.annotation.tailrec
 
-import Macros._
+//import macros._
 
 import scala.io.BufferedSource
 import scala.util.control.NonFatal
