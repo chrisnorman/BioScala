@@ -27,17 +27,12 @@ class FASTAFileReader(fileName: String) {
 
   private case object EndOfUnit extends Input[Nothing] // private sentinel for signaling end of a sequence
 
-  var i = 0
-
   // fake an end-of-input for the iteratee, but return EndOfUnit to
   // the enumerator loop to force the start of a new seed
   private def stepIt[R](srcIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R]) : Iteratee[Char, R] = {
     if (srcIt.hasNext) {
-      i = i + 1
-      if (i % 1000 == 0)
-        println(i)
       val c = srcIt.next
-	  if (c == '>') {	
+	  if (c == '>') {
         f(EndOfInput) match {
           case Done(res, _) => Done(res, EndOfUnit)
           case other @ _ => other
@@ -70,6 +65,8 @@ class FASTAFileReader(fileName: String) {
 	}
   }
 
+  // TODO: it is lame that if you call raw enumerate you need to strip out cr/lf yourself
+  // (the sequence enumeratos below do that for you)
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, List[(String, R)]] = {
     val tFIS = Try(new java.io.FileInputStream(fileName))
     if (tFIS.isFailure)
@@ -92,14 +89,21 @@ class FASTAFileReader(fileName: String) {
           val resList = loop(charIt, compoundIt, compoundIt, Nil)
           tBS.get.close
           tFIS.get.close
-          if (resList.isSuccess) Done(resList.get.reverse, EndOfInput)
-          else Error(resList.failed.get)
+          if (resList.isSuccess)
+            Done(resList.get.reverse, EndOfInput)
+          else
+            Error(resList.failed.get)
 	    }
-	    else Error(new IllegalArgumentException("Can't parse FASTA file header"))
+	    else {
+          tBS.get.close
+          tFIS.get.close
+	      Error(new IllegalArgumentException("Can't parse FASTA file header"))
+	    }
       }
     }
   }
 
+  // TODO: the names of these should make it clear that  these sequences are reified in memory
   def enumerateList[R](seed: R, f: (Char, R) => R) : Iteratee[Char, List[(String, R)]] = {
     def step(r: R): Input[Char] => Iteratee[Char, R] = in => {
       in match {

@@ -66,7 +66,11 @@ object BioScalaTestDriver {
        			println(res.result)
 
       case 7 => // FASTA file *reader* enumerate test
-     			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
+      			val seq = DNASequence(getTestFileDir + "thammdist1.fasta")
+      			val str = seq.getSequenceString()
+      			println(str)
+
+      			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
      			val res = ffr.enumerateSequencesPacked.result
      			res.map(l => l.map(a => println(DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString())))
      			/*val seqs = for {

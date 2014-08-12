@@ -36,38 +36,40 @@ class FASTAFileSource(fileName: String) {
         Error(tBS.failed.get)
       }
       else {
-        val srcIt = tBS.get.iter
-        var i = 0;
+        val charIt = tBS.get.iter
 	    @tailrec
-	    def loop[B](it: Iteratee[Char, B]): Iteratee[Char, B] = {
+	    def loop[B](charIt: Iterator[Char], it: Iteratee[Char, B]): Iteratee[Char, B] = {
 	      it match {
 	        case Continue(f) => {
-	          if (srcIt.hasNext) {
-	            i = i + 1
-	            if (i % 1000 == 0)
-	              println (i)
-	            loop(f(Element(srcIt.next)))
+	          if (charIt.hasNext) {
+	            val c = charIt.next
+	            if (c == '>')
+	              f(EndOfInput)
+	            else
+	              loop(charIt, f(Element(c)))
 	          }
-	          else f(EndOfInput)
+	          else
+	            f(EndOfInput)
 	        }
 	        case o @ other => o
 	      }
 	    }
-	    // TODO: is this takeWhile keeping everything in memory 
-        val ret = loop(
-          for {
-            _ <- Iteratees.expect('>')
-            b <- Iteratees.takeLine		// eat the FASTA header line
-            _ <- Iteratees.takeWhile[Char](c => c != '>')
-            d <- it
-          } yield(b, d)
-        )
-        tBS.get.close
-        tFIS.get.close
-        ret match { // strip off the FASTA header result and return only R
-          case Done(res, rem) => Done(res._2, rem)
-          case Error(ex) => Error(ex)
+	    val tChev = Try{charIt.hasNext && charIt.next == '>'}
+	    if (tChev.isSuccess) {
+          val compoundIt = for {
+	        _ <- Iteratees.takeLine		// eat the FASTA header line
+	        b <- it
+          } yield(b)
+          val resIt = loop(charIt, compoundIt)
+          tBS.get.close
+          tFIS.get.close
+          resIt
         }
+	    else {
+          tBS.get.close
+          tFIS.get.close
+	      Error(new IllegalArgumentException("Can't parse FASTA file header"))
+	    }
       }
     }
   }
