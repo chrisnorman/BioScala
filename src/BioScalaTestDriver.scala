@@ -67,12 +67,13 @@ object BioScalaTestDriver {
 
       case 7 => // FASTA file *reader* enumerate test
      			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
-     			val res = ffr.enumerateSequencesPacked
-     			// TODO: use map here...and everywhere...
-     			res.result.get.map {c => 
-     			  val src = new SequenceSourceCache(c._2)
-     			  println("Sequence: " + c._1 + ": " + src.getSequenceString())
-     			}
+     			val res = ffr.enumerateSequencesPacked.result
+     			res.map(l => l.map(a => println(DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString())))
+     			/*val seqs = for {
+     			  a <- res.get
+     			  s = DNASequence(a._1, new SequenceSourceCache(a._2))
+     			} yield(s)
+     			seqs.map(s => println(s.id + ": " + s.getSequenceString()))*/		  
 
       case 8 => // giant FASTA file source processing
        			val ffr = new FASTAFileReader("\\Sharing\\Development\\TestFiles\\chr22.FASTA")
@@ -148,7 +149,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(8)
+    doBioScala(7)
   }
 
 /*

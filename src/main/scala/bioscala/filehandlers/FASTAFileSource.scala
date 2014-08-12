@@ -19,10 +19,8 @@ import scala.util.{ Try, Success, Failure }
 import bioscala.gentypes._
 
 /**
- * FASTA File sequence source: source stream for a single sequence
+ * FASTA File sequence source: source stream for a single sequence in a FASTA file
  */
-// TODO: PARSING - FASTA file sequence uses the filename for the id rather than
-// the tag inside the file
 class FASTAFileSource(fileName: String) {
   /*
    * Enumerates the first sequence in a FASTA file.
@@ -55,14 +53,12 @@ class FASTAFileSource(fileName: String) {
 	        case o @ other => o
 	      }
 	    }
-        // skip over the header line; contents is currently discarded although
-        // it should be the sequence ID
-        // TODO: enumeration still doesn'w work properly
+	    // TODO: is this takeWhile keeping everything in memory 
         val ret = loop(
           for {
-            a <- Iteratees.expect('>')
+            _ <- Iteratees.expect('>')
             b <- Iteratees.takeLine		// eat the FASTA header line
-            c <- Iteratees.takeWhile[Char](c => c != '>')
+            _ <- Iteratees.takeWhile[Char](c => c != '>')
             d <- it
           } yield(b, d)
         )

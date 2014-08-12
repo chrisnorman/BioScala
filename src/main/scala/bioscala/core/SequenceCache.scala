@@ -28,7 +28,7 @@ trait SequenceCache
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = enumerateStep(0, it)
   def enumerateReverse[R](it: Iteratee[Char, R]): Iteratee[Char, R] = reverseEnumerateStep(0, it)
 
-  //@tailrec
+  @tailrec
   protected final def enumerateStep[R](count: Int, it: Iteratee[Char, R]): Iteratee[Char, R] = {
     it match {
       case c @ Continue(f) =>
@@ -38,6 +38,7 @@ trait SequenceCache
     }
   }
 
+  @tailrec
   protected final def reverseEnumerateStep[R](count: Int, it: Iteratee[Char, R]): Iteratee[Char, R] = {
     it match {
       case c @ Continue(f) =>

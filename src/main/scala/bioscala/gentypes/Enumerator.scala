@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 trait Enumerator[E] { self =>
 
   def enumerate[R](it: Iteratee[E, R]): Iteratee[E, R]
-  def apply[R](it: Iteratee[E, R]) : Iteratee[E, R] = enumerate(it)
+  def apply[R](it: Iteratee[E, R]): Iteratee[E, R] = enumerate(it)
 
   /*
   def map[U](f: E => Enumerator[U]): Enumerator[U] = {
