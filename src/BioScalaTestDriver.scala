@@ -10,14 +10,12 @@ import scala.io.Source
 
 import bioscala.core._
 import bioscala.gentypes._
-
-//import bioscala.filehandlers.FASTAFileReader
+import bioscala.filehandlers.FASTAFileReader
 //import bioscala.graph._
 
 /**
  * Test driver application for exercising  BioScala functions.
  */
-// TODO: enable sbt; hierarchy should match GenScala
 object BioScalaTestDriver {
 
   // location of test data files
@@ -52,7 +50,7 @@ object BioScalaTestDriver {
        			val dist = targ.getHammingDistance(seq)
        			println("Hamming distance: " + dist)
 
-      case 5 =>
+      case 5 => // string source enumerate test
      			val seq = DNASequence("id", "aacccgtaacgtg")
       			val res = seq.enumerate {
      			  for {
@@ -62,11 +60,18 @@ object BioScalaTestDriver {
      			}.result
       			println(res.get)
 
-
-      case 6 => // TestID: gc
+      case 6 => // FASTA file source enumerate test
      			val seq = DNASequence(getTestFileDir + "tcons.fasta")
      			val res = seq.enumerate(Iteratees.takeRight(8))
        			println(res.result)
+
+      case 7 => // FASTA file *reader* enumerate test
+     			val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
+     			val res = ffr.enumerateSequencesPacked
+     			res.result.get.foreach {c => 
+     			  val src = new SequenceSourceCache(c)
+     			  println("Sequence: " + src.getSequenceString())
+     			}
 
 /*
       case 6 => // TestID: perm
@@ -133,7 +138,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(6)
+    doBioScala(7)
   }
 
 /*

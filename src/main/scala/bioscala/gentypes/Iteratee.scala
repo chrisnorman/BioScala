@@ -10,23 +10,19 @@ package bioscala.gentypes
 
 import scala.util.{ Try, Success, Failure }
 
-// TODO: separate Pending from Empty ??
-
 /**
  * Input element for a computation represented by an Iteratee.
  */
 trait Input[+E] {
   def map[U](f: E => U): Input[U] = this match {
     case Element(e) => Element(f(e))
-    case Pending => Pending
-    // TODO: Pending and EndOfInput should be objects defined in Object Input so there is only one instance
     case EndOfInput => EndOfInput
   }
 }
 
 case class Element[E](e: E) extends Input[E]
-case object Pending extends Input[Nothing]
 case object EndOfInput extends Input[Nothing]
+case object Empty extends Input[Nothing]
 
 /**
  * Consumer of a stream of Input elements of type E, eventually producing a result of type R.
@@ -67,12 +63,11 @@ trait Iteratee[E, R] {
    * 
    */ 
  def debugShowState() = this match {
-    case Done(_, Pending) => println("Iteratee: Done, pending")
-    case Done(_, EndOfInput) => println("Iteratee: Done, end of input")
     case Done(_, Element(e)) => println("Iteratee: Done, with remaining input")
+    case Done(_, EndOfInput) => println("Iteratee: Done, end of input")
     case Error(_) => println("Iteratee: Error")
     case Continue(_) => println("Iteratee: Continue")
-    case _ => println("Iteratee: some other outcome")
+    case _ => println("Iteratee: unknown state")
   }
 
   /**
@@ -144,14 +139,13 @@ object Iteratee {
    * parameterized with a continuation function "f" that will handle the (R, E) => R
    * (input to new state) transformation.
    * 
-   * NOTE: the iteratee terminates the enumerator when the continuation receives "Pending" input.
-   * TODO: Not sure if terminating on Pending is the right thing....
+   * NOTE: the iteratee terminates the enumerator when the continuation receives "EndOfUnit" input.
+   * TODO: Not sure if terminating on EndOfUnit is the right thing....
    */
   def fold[E, R](state: R)(f: (R, E) => R): Iteratee[E, R] = {
     def step(r: R): Input[E] => Iteratee[E, R] = in =>
       in match {
         case Element(e) => Continue(step(f(r, e)))
-        case Pending => Done(r, Pending)  // terminate the enumerator on pending input ??
         case EndOfInput => Done(r, EndOfInput)
       }
     Continue(step(state))
@@ -163,7 +157,7 @@ object Iteratee {
 		  			eof: => Iteratee[E, R]): Iteratee[E, R] = {
     def step(n: Int): Input[A] => Iteratee[A, Int] = {
 	    case Element(x)		=> Continue(step(n + 1))
-	    case Pending		=> Continue(step(n))
+	    case EndOfUnit		=> Done(n, EndOfUnit)
 	    case EndOfInput 	=> Done(n, EndOfInput)
 	}
 	Continue(step(0))

@@ -46,7 +46,6 @@ trait SequenceSource
       def step(sbuf: StringBuffer, count: Long): Input[Char] => Iteratee[Char, String] = {
         case Element(e) => if (n == -1 || count < n) Continue(step(sbuf.append(e), count + 1))
         				   else Done(sbuf.toString, Element(e))
-        case Pending => Done(sbuf.toString, Pending)
         case EndOfInput => Done(sbuf.toString, EndOfInput)
       }
       Continue(step(sb, 1))

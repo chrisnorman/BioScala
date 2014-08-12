@@ -15,16 +15,15 @@ package bioscala.gentypes
 object Iteratees {
 
   def takeOne[E]: Iteratee[E, Option[E]] = Continue {
-    case in @ Element(e) => Done(Some(e), Pending)
-    case in @ EndOfInput => Done(None, in)
-    case Pending => takeOne
+    case in @ Element(e) => Done(Some(e), Empty)
+    case in @ EndOfInput => Done(None, Empty)
   }
 
   def take[E](n: Int): Iteratee[E, List[E]] = {
     def step(ct: Int, l: List[E]): Input[E] => Iteratee[E, List[E]] = {
       _ match {
         case Element(e) =>
-          if (ct == 0) Done(l.reverse, Pending)
+          if (ct == 0) Done(l.reverse, Element(e))
           else Continue(step(ct-1, e :: l))
         case EndOfInput => Done(l.reverse, EndOfInput)
       }
@@ -52,7 +51,7 @@ object Iteratees {
 	  case in @ Element(e) =>
 	    if (p(e)) takeWhile(p, result :+ e)	      
 	    else Done(result, in)
-	  case in @ EndOfInput => Done(result, in)
+	  case in @ EndOfInput => Done(result, EndOfInput)
 	  case _ => takeWhile(p, result)
 	}
 
@@ -79,9 +78,9 @@ object Iteratees {
   
   def peek[E]: Iteratee[E, Option[E]] = {
     Continue {
-      case in @ Element(e) => Done(Some(e), in)
-      case in @ EndOfInput => Done(None, in)
-      case Pending => peek
+      case in @ Element(e) => Done(Some(e), Empty)
+      case in @ EndOfInput => Done(None, EndOfInput)
+      //case Pending => peek
     }
   }
 
