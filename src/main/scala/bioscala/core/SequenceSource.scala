@@ -27,7 +27,7 @@ trait SequenceSource
 
   // TODO: add tests for all iterators (i.e. make sure transformed sources are transformed, etc.
   def apply(i: Int): Try[Char]
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R]
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R]
   override def foreach[U](f: Char => U) = enumerate(Iteratee.fold[Char, Unit](Unit)((r, e) => f(e)))
   override def iterator: Iterator[Char]
   def reify: Try[SequenceSource]
@@ -80,7 +80,7 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource
     } yield src
   }
 
-  protected final def enumerateStep[R](itr: Iterator[Char]): Iteratee[Char, R] => Iteratee[Char, R] = {
+  protected final def enumerateStep[R](itr: Iterator[Char], it: Iteratee[Char, R]): Iteratee[Char, R] = {
     @tailrec
     def eStep(ite: Iteratee[Char, R]): Iteratee[Char, R] = {
       ite match {
@@ -90,10 +90,10 @@ class SequenceSourceString(val seqStr: String) extends SequenceSource
         case other @_ => other
       }
     }
-    eStep
+    eStep(it)
   }
 
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(seqStr.iterator)
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = enumerateStep(seqStr.iterator, it)
 }
 
 /**
@@ -130,9 +130,9 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
     } yield src
   }
 
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = {
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = {
     val ffSource = new FASTAFileSource(fileName)
-    ffSource.enumerate
+    ffSource.enumerate(it)
   }
 }
 
@@ -145,7 +145,7 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
  */
 class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Char) extends SequenceSource {
   override def apply(i: Int): Try[Char] = src(i).map(transform)
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = ite => src.enumerate(ite.mapInput(transform))
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = src.enumerate(it.mapInput(transform))
   override def foreach[U](f: Char => U) = enumerate(Iteratee.fold[Char, Unit](Unit)((r, e) => f(e)))
   override def iterator: Iterator[Char] = src.iterator.map(transform)
   override def reify = src.reify.map(s => new SequenceSourceMappedLinear(s, transform))
@@ -158,7 +158,7 @@ class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Cha
  */
 class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {
   override def apply(i: Int): Try[Char] = cache.apply(i)
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerate
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = cache.enumerate(it)
   override def iterator: Iterator[Char] = new Iterator[Char] {
     var i = 0
     def hasNext: Boolean = i < cache.length
@@ -179,7 +179,7 @@ class SequenceSourceReverseCache(val cache: SequenceCache) extends SequenceSourc
   override def apply(i: Int): Try[Char] = cache.apply(cache.length - 1 - i)
   override def reify = Try(this)
   override def reverse: Try[SequenceSourceCache] = Try(new SequenceSourceCache(cache))
-  override def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = cache.enumerateReverse
+  override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = cache.enumerateReverse(it)
   override def iterator: Iterator[Char] = new Iterator[Char] {
     var i = 0
     def hasNext: Boolean = i < cache.length

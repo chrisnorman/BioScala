@@ -39,11 +39,17 @@ class FASTAFileSource(fileName: String) {
       }
       else {
         val srcIt = tBS.get.iter
+        var i = 0;
 	    @tailrec
 	    def loop[B](it: Iteratee[Char, B]): Iteratee[Char, B] = {
 	      it match {
 	        case Continue(f) => {
-	          if (srcIt.hasNext) loop(f(Element(srcIt.next)))
+	          if (srcIt.hasNext) {
+	            i = i + 1
+	            if (i % 1000 == 0)
+	              println (i)
+	            loop(f(Element(srcIt.next)))
+	          }
 	          else f(EndOfInput)
 	        }
 	        case o @ other => o

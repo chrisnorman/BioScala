@@ -25,23 +25,24 @@ trait SequenceCache
 
   def append(c: Char): SequenceCache
   def apply(index: Int): Try[Char]
-  def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = enumerateStep(0)
-  def enumerateReverse[R]: Iteratee[Char, R] => Iteratee[Char, R] = reverseEnumerateStep(0)
+  def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = enumerateStep(0, it)
+  def enumerateReverse[R](it: Iteratee[Char, R]): Iteratee[Char, R] = reverseEnumerateStep(0, it)
 
-  protected final def enumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
-    _ match {
+  //@tailrec
+  protected final def enumerateStep[R](count: Int, it: Iteratee[Char, R]): Iteratee[Char, R] = {
+    it match {
       case c @ Continue(f) =>
-        if (count != length) enumerateStep(count + 1)(f(Element(apply(count).get)))
-        else enumerateStep(count + 1)(f(EndOfInput))
+        if (count != length) enumerateStep(count + 1, f(Element(apply(count).get)))
+        else enumerateStep(count + 1, f(EndOfInput))
       case other @_ => other
     }
   }
 
-  protected final def reverseEnumerateStep[R](count: Int) : Iteratee[Char, R] => Iteratee[Char, R] = {
-    _ match {
+  protected final def reverseEnumerateStep[R](count: Int, it: Iteratee[Char, R]): Iteratee[Char, R] = {
+    it match {
       case c @ Continue(f) =>
-        if ((length - count) != 0) reverseEnumerateStep(count + 1)(f(Element(apply(length - count - 1).get)))
-        else reverseEnumerateStep(count + 1)(f(EndOfInput))
+        if ((length - count) != 0) reverseEnumerateStep(count + 1, f(Element(apply(length - count - 1).get)))
+        else reverseEnumerateStep(count + 1, f(EndOfInput))
       case other @_ => other
     }
   }
@@ -88,7 +89,7 @@ class SequenceCacheUnpacked private[core](vCache: Vector[Char], val length: Int)
  * 
  * NOTE: the length of the vector is limited by the range of Int. (This could be extended
  * to handle longer sequences by using long indices for the sequence itself, and mapping
- * them here to Int indices for the vector, since the vector is packed and only takes 1/16n
+ * them here to Int indices for the vector, since the vector is packed and only takes 1/4n
  * entries to store n values.
  * 
  */

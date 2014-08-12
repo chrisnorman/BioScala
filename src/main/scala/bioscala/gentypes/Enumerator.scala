@@ -18,7 +18,7 @@ import scala.annotation.tailrec
 // TODO should this be called enumerable ?
 trait Enumerator[E] { self =>
 
-  def enumerate[R]: Iteratee[E, R] => Iteratee[E, R]
+  def enumerate[R](it: Iteratee[E, R]): Iteratee[E, R]
   def apply[R](it: Iteratee[E, R]) : Iteratee[E, R] = enumerate(it)
 
   /*

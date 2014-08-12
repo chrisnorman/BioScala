@@ -27,10 +27,15 @@ class FASTAFileReader(fileName: String) {
 
   private case object EndOfUnit extends Input[Nothing] // private sentinel for signaling end of a sequence
 
+  var i = 0
+
   // fake an end-of-input for the iteratee, but return EndOfUnit to
   // the enumerator loop to force the start of a new seed
   private def stepIt[R](srcIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R]) : Iteratee[Char, R] = {
     if (srcIt.hasNext) {
+      i = i + 1
+      if (i % 1000 == 0)
+        println(i)
       val c = srcIt.next
 	  if (c == '>') {	
         f(EndOfInput) match {
@@ -65,7 +70,7 @@ class FASTAFileReader(fileName: String) {
 	}
   }
 
-  def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, List[R]] = {
+  def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, List[(String, R)]] = {
     val tFIS = Try(new java.io.FileInputStream(fileName))
     if (tFIS.isFailure)
       Error(tFIS.failed.get)
@@ -80,7 +85,7 @@ class FASTAFileReader(fileName: String) {
         val compoundIt = for {
 	      a <- Iteratees.takeLine		// eat the FASTA header line
 	      b <- it
-	    } yield(b)
+	    } yield(a, b)
 
 	    val tChev = Try{charIt.hasNext && charIt.next == '>'}
 	    if (tChev.isSuccess) {
@@ -95,7 +100,7 @@ class FASTAFileReader(fileName: String) {
     }
   }
 
-  def enumerateList[R](seed: R, f: (Char, R) => R) : Iteratee[Char, List[R]] = {
+  def enumerateList[R](seed: R, f: (Char, R) => R) : Iteratee[Char, List[(String, R)]] = {
     def step(r: R): Input[Char] => Iteratee[Char, R] = in => {
       in match {
         case Element(e) =>
@@ -107,7 +112,7 @@ class FASTAFileReader(fileName: String) {
     enumerate[R](Continue(step(seed)))
   }
   
-  def enumerateSequencesPacked: Iteratee[Char, List[SequenceCachePacked]] = 
-		  enumerateList[SequenceCachePacked](new SequenceCachePacked, (e, r) => r.append(e))
+  // We need SequenceCache (not packed) as well for Protein sequences and RNA sequences
+  def enumerateSequencesPacked: Iteratee[Char, List[(String, SequenceCachePacked)]] = 
+		  enumerateList[SequenceCachePacked](new SequenceCachePacked, (e, r) => (r.append(e)))
 }
-

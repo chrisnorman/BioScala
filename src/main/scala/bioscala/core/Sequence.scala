@@ -29,7 +29,7 @@ abstract class Sequence(val id: String, val src: SequenceSource)
   def foreach[U](f: Char => U) = src.foreach(f)
   def reify: Try[Sequence] // read this sequence into memory for random access if it isn't already cached
   def reverse: Try[Sequence]
-  def enumerate[R]: Iteratee[Char, R] => Iteratee[Char, R] = src.enumerate(_)
+  def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = src.enumerate(it)
   def iterator: Iterator[Char] = src.iterator
   def getSequenceString(nChars: Option[Long] = None) = src.getSequenceString(nChars)
 
