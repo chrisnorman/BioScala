@@ -29,9 +29,9 @@ class FASTAFileReader(fileName: String) {
 
   // fake an end-of-input for the iteratee, but return EndOfUnit to
   // the enumerator loop to force the start of a new seed
-  private def stepIt[R](srcIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R]) : Iteratee[Char, R] = {
-    if (srcIt.hasNext) {
-      val c = srcIt.next
+  private def stepIt[R](charIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R]) : Iteratee[Char, R] = {
+    if (charIt.hasNext) {
+      val c = charIt.next
 	  if (c == '>') {
         f(EndOfInput) match {
           case Done(res, _) => Done(res, EndOfUnit)
@@ -46,27 +46,27 @@ class FASTAFileReader(fileName: String) {
   @tailrec
   private def loop[R](
       charIt: Iterator[Char],
-	  currentIt: Iteratee[Char, R],
-	  restartIt: Iteratee[Char, R],
-	  rList: List[R]
+	  currentIt: Iteratee[Char, R],		// iteratee in progress
+	  restartIt: Iteratee[Char, R],		// iteratee to use on EndOfUnit
+	  acc: List[R]
   ): Try[List[R]] =
   {
     currentIt match {
 	  case Continue(f) =>
 	    val nextIt = stepIt(charIt, f)
 	    nextIt match {
-		  case Continue(f) => loop(charIt, nextIt, restartIt, rList)
-	      case Done(res, EndOfUnit) => loop(charIt, restartIt, restartIt, res :: rList) // start over with a new seed/iteratee
-	      case Done(res, EndOfInput) => Success(res :: rList)
+		  case Continue(f) => loop(charIt, nextIt, restartIt, acc)
+	      case Done(res, EndOfUnit) => loop(charIt, restartIt, restartIt, res :: acc) // start over with a new seed/iteratee
+	      case Done(res, EndOfInput) => Success(res :: acc)
 	      case e @ Error(t) => Failure(t)
 	    }
 	  case e @ Error(t) => Failure(t)
-	  case Done(res, rem) => Success(res :: rList)
+	  case Done(res, rem) => Success(res :: acc)
 	}
   }
 
   // TODO: it is lame that if you call raw enumerate you need to strip out cr/lf yourself
-  // (the sequence enumeratos below do that for you)
+  // (the sequence enumerates below do that for you)
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, List[(String, R)]] = {
     val tFIS = Try(new java.io.FileInputStream(fileName))
     if (tFIS.isFailure)
@@ -89,10 +89,8 @@ class FASTAFileReader(fileName: String) {
           val resList = loop(charIt, compoundIt, compoundIt, Nil)
           tBS.get.close
           tFIS.get.close
-          if (resList.isSuccess)
-            Done(resList.get.reverse, EndOfInput)
-          else
-            Error(resList.failed.get)
+          if (resList.isSuccess) Done(resList.get.reverse, EndOfInput)
+          else Error(resList.failed.get)
 	    }
 	    else {
           tBS.get.close
@@ -103,12 +101,12 @@ class FASTAFileReader(fileName: String) {
     }
   }
 
-  // TODO: the names of these should make it clear that  these sequences are reified in memory
+  // TODO: the names of these should make it clear that these sequences are reified in memory
   def enumerateList[R](seed: R, f: (Char, R) => R) : Iteratee[Char, List[(String, R)]] = {
     def step(r: R): Input[Char] => Iteratee[Char, R] = in => {
       in match {
         case Element(e) =>
-     	  if (e == '\n' || e == '\r') Continue(step(r))
+     	  if (e == '\n' || e == '\r') Continue(step(r))  // strip out embedded cr/lf
      	  else Continue(step(f(e, r)))
      	case EndOfInput => Done(r, EndOfInput)
        }
@@ -116,7 +114,7 @@ class FASTAFileReader(fileName: String) {
     enumerate[R](Continue(step(seed)))
   }
   
-  // We need SequenceCache (not packed) as well for Protein sequences and RNA sequences
+  // TODO: need SequenceCache (not packed) as well for Protein sequences and RNA sequences
   def enumerateSequencesPacked: Iteratee[Char, List[(String, SequenceCachePacked)]] = 
 		  enumerateList[SequenceCachePacked](new SequenceCachePacked, (e, r) => (r.append(e)))
 }

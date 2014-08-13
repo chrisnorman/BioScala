@@ -44,13 +44,8 @@ trait SequenceSource
     val sb: StringBuffer = new StringBuffer;
     def getChars(n: Long): Iteratee[Char, String] = {
       def step(sbuf: StringBuffer, count: Long): Input[Char] => Iteratee[Char, String] = {
-        case Element(e) =>  if (n == -1 || count < n) {
-        					  if (e == '\r' || e == '\n')
-        					    Continue(step(sbuf, count + 1))
-        					  else
-        					    Continue(step(sbuf.append(e), count + 1))
-        					}
-        				    else Done(sbuf.toString, Element(e))
+        case Element(e) =>  if (n == -1 || count < n) Continue(step(sbuf.append(e), count + 1))
+        					else Done(sbuf.toString, Element(e))
         case EndOfInput => Done(sbuf.toString, EndOfInput)
       }
       Continue(step(sb, 1))

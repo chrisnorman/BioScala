@@ -39,15 +39,12 @@ import bioscala.filehandlers._
     assert(s == "ATCCAGCT")
   }
 
-  // TODO: fix trailing cr/lf first
-  /*
-  test("FASTA File Source - enumerate takeRight") {
+  test("FASTA File Source - enumerate (takeRight)") {
     val seq = DNASequence(getTestFileDir + "tcons.fasta")
     val resIt = seq.enumerate(Iteratees.takeRight(4))
     val res = resIt.result.map(_.mkString).getOrElse("failed")
     assert(res == "AGCT")
   }
-  */
   
   test("FASTA File Reader - enumerateSequencesPacked") {
     val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
