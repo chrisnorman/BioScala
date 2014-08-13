@@ -13,7 +13,7 @@ import scala.io.BufferedSource
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
-import bioscala.core.{ DNASequence, Sequence, SequenceSourceCache, SequenceCache, SequenceCachePacked }
+import bioscala.core._
 import bioscala.gentypes._
 
 /**
@@ -65,8 +65,6 @@ class FASTAFileReader(fileName: String) {
 	}
   }
 
-  // TODO: it is lame that if you call raw enumerate you need to strip out cr/lf yourself
-  // (the sequence enumerates below do that for you)
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, List[(String, R)]] = {
     val tFIS = Try(new java.io.FileInputStream(fileName))
     if (tFIS.isFailure)
@@ -101,7 +99,6 @@ class FASTAFileReader(fileName: String) {
     }
   }
 
-  // TODO: the names of these should make it clear that these sequences are reified in memory
   def enumerateList[R](seed: R, f: (Char, R) => R) : Iteratee[Char, List[(String, R)]] = {
     def step(r: R): Input[Char] => Iteratee[Char, R] = in => {
       in match {
@@ -113,8 +110,18 @@ class FASTAFileReader(fileName: String) {
     }
     enumerate[R](Continue(step(seed)))
   }
-  
-  // TODO: need SequenceCache (not packed) as well for Protein sequences and RNA sequences
-  def enumerateSequencesPacked: Iteratee[Char, List[(String, SequenceCachePacked)]] = 
+
+  /*
+   * Return a list of all sequences in the FASTA file reified in packed cache (use for
+   * DNASequences).
+   */
+  def reifySequencesPacked: Iteratee[Char, List[(String, SequenceCachePacked)]] = 
 		  enumerateList[SequenceCachePacked](new SequenceCachePacked, (e, r) => (r.append(e)))
+
+  /*
+   * Return a list of all sequences in the FASTA file reified in packed cache (use for
+   * RNASequences or ProteinSequences).
+   */
+  def reifySequencesUnpacked: Iteratee[Char, List[(String, SequenceCacheUnpacked)]] =
+		  enumerateList[SequenceCacheUnpacked](new SequenceCacheUnpacked, (e, r) => (r.append(e)))
 }

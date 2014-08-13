@@ -28,21 +28,22 @@ object Iteratees {
         case EndOfInput => Done(l.reverse, EndOfInput)
       }
     }
-    if (n == 0) Done(Nil, EndOfInput) else Continue(step(n, Nil))
+    if (n <= 0) Error(new IllegalStateException("takeRight count must be > 0"))
+    else Continue(step(n, Nil))
   }
 
   def takeRight[E](n: Int): Iteratee[E, List[E]] = {
     def step(count: Int, l: List[E]): Input[E] => Iteratee[E, List[E]] = {
       _ match {
         case Element(e) =>
-          if (count >= n) // TODO: this list management is inefficient....
-            Continue(step(count+1, e :: l.take(n-1))) // keep the last n-1 chars
+          if (count >= n) // this list management is inefficient....
+            Continue(step(count+1, e :: l.take(n-1))) // keep the last (first since the list is reversed) n-1 chars
           else
             Continue(step(count+1, e :: l))
         case EndOfInput => Done(l.reverse, EndOfInput)
       }
     }
-    if (n == 0) Error(new IllegalStateException("takeRight count must be > 0"))
+    if (n <= 0) Error(new IllegalStateException("takeRight count must be > 0"))
     else Continue(step(0, Nil))
   }
 

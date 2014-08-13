@@ -83,7 +83,6 @@ trait Iteratee[E, R] {
 
   def filter(p: (E) => Boolean): Iteratee[E, R]
 
-  // TODO: def foreach[]
 }
 
 /**
@@ -139,8 +138,6 @@ object Iteratee {
    * parameterized with a continuation function "f" that will handle the (R, E) => R
    * (input to new state) transformation.
    * 
-   * NOTE: the iteratee terminates the enumerator when the continuation receives "EndOfUnit" input.
-   * TODO: Not sure if terminating on EndOfUnit is the right thing....
    */
   def fold[E, R](state: R)(f: (R, E) => R): Iteratee[E, R] = {
     def step(r: R): Input[E] => Iteratee[E, R] = in =>

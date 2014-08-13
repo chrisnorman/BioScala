@@ -26,8 +26,6 @@ object ProteinSequence {
  */
 class ProteinSequence(override val id: String, override val src: SequenceSource) extends Sequence(id, src)
 {
-  val alpha = ProteinAlphabet
-
   def reify: Try[ProteinSequence] = src.reify.map(s => ProteinSequence(id, s))
   def reverse: Try[ProteinSequence] = src.reify.map(s => new ProteinSequence("Reverse of: " + this.id, s))
 

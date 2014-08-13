@@ -27,7 +27,6 @@ object DNASequence {
  * 
  */
 class DNASequence(override val id: String, override val src: SequenceSource) extends NucleotideSequence(id, src) {
-  val alpha = DNAAlphabet
 
   override def reify: Try[DNASequence] = src.reify.map(s => DNASequence(id, s))
   override def reverse: Try[DNASequence] = src.reverse.map(s => new DNASequence("Reverse of: " + this.id, s))

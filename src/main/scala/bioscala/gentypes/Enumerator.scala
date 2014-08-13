@@ -15,7 +15,6 @@ import scala.annotation.tailrec
  * Enumerates elements of type E.
  * 
  */
-// TODO should this be called enumerable ?
 trait Enumerator[E] { self =>
 
   def enumerate[R](it: Iteratee[E, R]): Iteratee[E, R]

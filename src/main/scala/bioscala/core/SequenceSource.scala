@@ -25,7 +25,6 @@ trait SequenceSource
   with Iterable[Char]
 {
 
-  // TODO: add tests for all iterators (i.e. make sure transformed sources are transformed, etc.
   def apply(i: Int): Try[Char]
   override def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R]
   override def foreach[U](f: Char => U) = enumerate(Iteratee.fold[Char, Unit](Unit)((r, e) => f(e)))
