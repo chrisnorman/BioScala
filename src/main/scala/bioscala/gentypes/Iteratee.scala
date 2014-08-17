@@ -139,13 +139,13 @@ object Iteratee {
    * (input to new state) transformation.
    * 
    */
-  def fold[E, R](state: R)(f: (R, E) => R): Iteratee[E, R] = {
-    def step(r: R): Input[E] => Iteratee[E, R] = in =>
+  def fold[E, R](seed: R)(f: (R, E) => R): Iteratee[E, R] = {
+    def step(state: R): Input[E] => Iteratee[E, R] = in =>
       in match {
-        case Element(e) => Continue(step(f(r, e)))
-        case EndOfInput => Done(r, EndOfInput)
+        case Element(e) => Continue(step(f(state, e)))
+        case EndOfInput => Done(state, EndOfInput)
       }
-    Continue(step(state))
+    Continue(step(seed))
   }
 
   /*

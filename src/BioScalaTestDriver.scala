@@ -87,7 +87,20 @@ object BioScalaTestDriver {
        			println(gc1)
        			val gc2 = seq.reverseComplement.get.getGCContent
        			println(gc2)
-
+ /*      			
+      case 9 =>
+       			val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
+       			val resT = ffr.enumerateResult(
+       			    Iteratee.fold[SequenceCache, List[String]](Nil)(
+       			        (r, e) => {
+       			          new DNASequence("id", new SequenceSourceCache(e)).getSequenceString() +: r
+       			        }
+       			    )
+       			)
+       			val res = resT.result
+       			if (res.isSuccess)
+       			  println(res.get)
+*/
 /*
       case 6 => // TestID: perm
       			val l = (1 to 5).toList.permutations
@@ -153,7 +166,7 @@ object BioScalaTestDriver {
    }
 
   def main(args: Array[String]): Unit = {
-    doBioScala(8)
+    doBioScala(9)
   }
 
 /*

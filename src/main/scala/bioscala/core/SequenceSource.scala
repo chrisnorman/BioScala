@@ -152,7 +152,7 @@ class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Cha
 }
 
 /**
- * Sequcen source backed by an in-memory cache, which may be packed (2 bits/char for DNA)
+ * Source backed by an in-memory cache, which may be packed (2 bits/char for DNA)
  * or unpacked.
  */
 class SequenceSourceCache(val cache: SequenceCache) extends SequenceSource {

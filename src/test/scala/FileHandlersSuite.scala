@@ -49,31 +49,46 @@ import bioscala.filehandlers._
   test("FASTA File Reader - enumerateSequencesPacked") {
     val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
     val res = ffr.reifySequencesPacked.result
-    val s = res.map(l => l.map(a => DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString()))
-    assert(s.isSuccess)
+    val s = res.map(l => l.map(a => (a._1, DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString())))
     assert(s.get.length == 7)
-    assert(s.get(0).mkString == "ATCCAGCT")
-    assert(s.get(1).mkString == "GGGCAACT")
-    assert(s.get(2).mkString == "ATGGATCT")
-    assert(s.get(3).mkString == "AAGCAACC")
-    assert(s.get(4).mkString == "TTGGAACT")
-    assert(s.get(5).mkString == "ATGCCATT")
-    assert(s.get(6).mkString == "ATGGCACT")
+
+    val v1 = s.get(0)._2.mkString 
+    val v2 = s.get(0)._1.mkString
+
+    assert(s.get(0)._2.mkString == "ATCCAGCT")
+    assert(s.get(0)._1.mkString == "test_1")
+    assert(s.get(1)._2.mkString == "GGGCAACT")
+    assert(s.get(1)._1.mkString == "test_2")
+    assert(s.get(2)._2.mkString == "ATGGATCT")
+    assert(s.get(2)._1.mkString == "test_3")
+    assert(s.get(3)._2.mkString == "AAGCAACC")
+    assert(s.get(3)._1.mkString == "test_4")
+    assert(s.get(4)._2.mkString == "TTGGAACT")
+    assert(s.get(4)._1.mkString == "test_5")
+    assert(s.get(5)._2.mkString == "ATGCCATT")
+    assert(s.get(5)._1.mkString == "test_6")
+    assert(s.get(6)._2.mkString == "ATGGCACT")
+    assert(s.get(6)._1.mkString == "test_7")
   }
 
   test("FASTA File Reader - enumerateSequencesUnpacked") {
     val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
     val res = ffr.reifySequencesUnpacked.result
-    val s = res.map(l => l.map(a => DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString()))
-    assert(s.isSuccess)
-    assert(s.get.length == 7)
-    assert(s.get(0).mkString == "ATCCAGCT")
-    assert(s.get(1).mkString == "GGGCAACT")
-    assert(s.get(2).mkString == "ATGGATCT")
-    assert(s.get(3).mkString == "AAGCAACC")
-    assert(s.get(4).mkString == "TTGGAACT")
-    assert(s.get(5).mkString == "ATGCCATT")
-    assert(s.get(6).mkString == "ATGGCACT")
+    val s = res.map(l => l.map(a => (a._1, DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString())))
+    assert(s.get(0)._2.mkString == "ATCCAGCT")
+    assert(s.get(0)._1.mkString == "test_1")
+    assert(s.get(1)._2.mkString == "GGGCAACT")
+    assert(s.get(1)._1.mkString == "test_2")
+    assert(s.get(2)._2.mkString == "ATGGATCT")
+    assert(s.get(2)._1.mkString == "test_3")
+    assert(s.get(3)._2.mkString == "AAGCAACC")
+    assert(s.get(3)._1.mkString == "test_4")
+    assert(s.get(4)._2.mkString == "TTGGAACT")
+    assert(s.get(4)._1.mkString == "test_5")
+    assert(s.get(5)._2.mkString == "ATGCCATT")
+    assert(s.get(5)._1.mkString == "test_6")
+    assert(s.get(6)._2.mkString == "ATGGCACT")
+    assert(s.get(6)._1.mkString == "test_7")
   }
 
 }

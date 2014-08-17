@@ -21,21 +21,7 @@ import bioscala.gentypes._
 /**
  * FASTA File sequence source: source stream for a single sequence in a FASTA file
  */
-class FASTAFileSource(fileName: String) {
-
-  // Strip out embedded cr/lfs
-  private def liftFilter[R](it: Iteratee[Char, R]): Iteratee[Char, R] = {
-    it match {
-      case Continue(f) =>
-        Continue {
-          case inp @ Element(e) =>
-            if (e == '\r' || e == '\n') liftFilter(it)
-            else liftFilter(f(inp))
-          case a @ _ => liftFilter(f(a))
-        }
-      case other @ _ => other
-    }
-  }
+class FASTAFileSource(fileName: String) extends FASTAFileParser {
 
   /*
    * Enumerates the first sequence in a FASTA file.
@@ -52,17 +38,10 @@ class FASTAFileSource(fileName: String) {
       }
       else {
         val charIt = tBS.get.iter
-	    @tailrec
+        @tailrec
 	    def loop[B](charIt: Iterator[Char], it: Iteratee[Char, B]): Iteratee[Char, B] = {
 	      it match {
-	        case Continue(f) => {
-	          if (charIt.hasNext) {
-	            val c = charIt.next
-	            if (c == '>') f(EndOfInput)	// terminate at the end of the first sequence
-	            else loop(charIt, f(Element(c)))
-	          }
-	          else f(EndOfInput)
-	        }
+	        case Continue(f) => loop(charIt, stepIt(charIt, f, EndOfInput))
 	        case o @ other => o
 	      }
 	    }
