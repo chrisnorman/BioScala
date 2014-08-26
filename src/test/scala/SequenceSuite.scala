@@ -22,7 +22,7 @@ import bioscala.core._
 
   test("Sequence: Create") {
     val seq = DNASequence("TestID", "AAAACCCGGT")
-    assert(seq.getSequenceString(None) == "AAAACCCGGT")
+    assert(seq.asString(None) == "AAAACCCGGT")
   }
 
   test("Sequence: Count DNA Bases") {
@@ -50,7 +50,7 @@ import bioscala.core._
       src = new SequenceSourceReverseCache(cache)
     } yield DNASequence("Reverse of " + seq.id, src)
 
-    assert(revSeq.isSuccess && revSeq.get.getSequenceString(None) == "TGGCCCAAAA")
+    assert(revSeq.isSuccess && revSeq.get.asString(None) == "TGGCCCAAAA")
   }
 
   test("Cache: Packed, Mapped with Reversed Source") {
@@ -65,7 +65,7 @@ import bioscala.core._
       src = new SequenceSourceReverseCache(cache)
     } yield DNASequence("Mapped " + seq.id, src)
 
-    assert(mappedRevSeq.isSuccess && mappedRevSeq.get.getSequenceString(None) == "ACCGGGTTTT")
+    assert(mappedRevSeq.isSuccess && mappedRevSeq.get.asString(None) == "ACCGGGTTTT")
   }
 
   test("Cache: Packed with Reversed, Mapped Source") {
@@ -77,21 +77,20 @@ import bioscala.core._
       cache <- tryCache
       src = new SequenceSourceReverseCache(cache)
     } yield DNASequence("Reversed: " + seq.id, src)
-    assert(revSeqTry.isSuccess && revSeqTry.get.getSequenceString(None) == "TGGCCCAAAA")
+    assert(revSeqTry.isSuccess && revSeqTry.get.asString(None) == "TGGCCCAAAA")
 
     // now map it to it's complement
     val revSeq = revSeqTry.get
     val complementMap = Map[Char, Char](
       'A' -> 'T', 'a' -> 't', 'T' -> 'A', 't' -> 'a', 'C' -> 'G', 'c' -> 'g', 'G' -> 'C', 'g' -> 'c')
     val mappedSeq = DNASequence("Mapped: " + revSeq.id, new SequenceSourceMappedLinear(revSeq.src, c => complementMap(c)))
-    assert(mappedSeq.getSequenceString(None) == "ACCGGGTTTT")
+    assert(mappedSeq.asString(None) == "ACCGGGTTTT")
   }
 
-  // TestID: revc
   test("Sequence: Reverse Complement") {
     val revComp = DNASequence("TestID: revc", "AAAACCCGGT").reverseComplement
     assert(revComp.isSuccess)
-    val s = revComp.get.getSequenceString()
+    val s = revComp.get.asString()
     assert(s == "ACCGGGTTTT")
   }
  
@@ -99,11 +98,10 @@ import bioscala.core._
     val seq = DNASequence("TestID: revc", "AAAACCCGGT")
     val revRevSeq = seq.reverseComplement.flatMap(s => s.reverseComplement)
     assert(revRevSeq.isSuccess)
-    val s = revRevSeq.get.getSequenceString(None)
-    assert(revRevSeq.get.getSequenceString(None) == seq.getSequenceString(None))
+    val s = revRevSeq.get.asString(None)
+    assert(revRevSeq.get.asString(None) == seq.asString(None))
   }
 
-  // TestID: hamm
   test("Sequence: Hamming Distance") {
     val seq1 = DNASequence("TestID: hamm1", "GAGCCTACTAACGGGAT")
     val seq2 = DNASequence("TestID: hamm2", "CATCGTAATGACGGCCT")
@@ -111,11 +109,10 @@ import bioscala.core._
     assert(tDist.isSuccess && tDist.get == 7)
   }
 
-  // TestID: rna
   test("Sequence: DNA Transcription") {
     val rnaSeq = DNASequence("TestID: rna", "GATGGAACTTGACTACGTAAATT").transcribe
-    val s = rnaSeq.get.getSequenceString(None)
-    assert(rnaSeq.isSuccess && rnaSeq.get.getSequenceString(None) == "GAUGGAACUUGACUACGUAAAUU")
+    val s = rnaSeq.get.asString(None)
+    assert(rnaSeq.isSuccess && rnaSeq.get.asString(None) == "GAUGGAACUUGACUACGUAAAUU")
   }
 
   /*

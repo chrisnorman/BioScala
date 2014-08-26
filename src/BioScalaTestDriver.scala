@@ -36,7 +36,7 @@ object BioScalaTestDriver {
      case 3 => // TestID: revc
        			val inputFile = getTestFileDir + "trevc.txt"
       			val seq2 = DNASequence("test", Source.fromFile(inputFile).getLines.mkString)
-     			val s = seq2.reverseComplement.get.getSequenceString()
+     			val s = seq2.reverseComplement.get.asString()
      			println(s)
    
       case 4 => // TestID: hamm
@@ -66,18 +66,14 @@ object BioScalaTestDriver {
        			println(res.result)
 
       case 7 => // FASTA file *reader* enumerate test
-      			val seq = DNASequence(getTestFileDir + "thammdist1.fasta")
-      			val str = seq.getSequenceString()
-      			println(str)
-
       			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
      			val res = ffr.reifySequencesPacked.result
-     			res.map(l => l.map(a => println(DNASequence(a._1, new SequenceSourceCache(a._2)).getSequenceString())))
+     			res.map(l => l.map(a => println(DNASequence(a._1, new SequenceSourceCache(a._2)).asString())))
      			/*val seqs = for {
      			  a <- res.get
      			  s = DNASequence(a._1, new SequenceSourceCache(a._2))
      			} yield(s)
-     			seqs.map(s => println(s.id + ": " + s.getSequenceString()))*/		  
+     			seqs.map(s => println(s.id + ": " + s.asString()))*/		  
 
       case 8 => // giant FASTA file source processing
        			val ffr = new FASTAFileReader("\\Sharing\\Development\\TestFiles\\chr22.FASTA")
@@ -93,7 +89,7 @@ object BioScalaTestDriver {
        			val resT = ffr.enumerateResult(
        			    Iteratee.fold[SequenceCache, List[String]](Nil)(
        			        (r, e) => {
-       			          new DNASequence("id", new SequenceSourceCache(e)).getSequenceString() +: r
+       			          new DNASequence("id", new SequenceSourceCache(e)).asString() +: r
        			        }
        			    )
        			)

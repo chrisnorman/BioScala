@@ -13,28 +13,34 @@ package bioscala.graph
 //    collect the entire string
 //	  add to DeBruijn graph
 
-//import bioscala.filehandlers.FASTAFileReader
+import bioscala.core._
+import bioscala.filehandlers.FASTAFileReader
+
 
 /*
-object DeBruijn {
+  object DeBruijn {
+
   /**
    * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
    */
   def fromFASTAFile(fName: String, k:Int): DeBruijn = {
     val ffr = new FASTAFileReader(fName)
-    val it = Iteratee.fold[Char, Try[DeBruijn]](Try(new DeBruijn))
-    	((r, e) => )
+    //val it = Iteratee.fold[Char, Try[DeBruijn]](Try(new DeBruijn))
+    //	((r, e) => )
 
+    val it = SequenceCache.packedCacheGenerator.map(s => )
     val res = ffr.enumerate(it)
-    /*
+
+
     def accGraph(l: List[DNASequence], g: DeBruijn): DeBruijn = {
       if (l.isEmpty) g
       else accGraph(l.tail, g.addVertex(l.head.getS.mkString, l.head.id))
     }
     accGraph(l, new DeBruijn(k))
-    */
+
   }
 }
+*/
 
 private case class Vertex(s: String)
 private case class Edge(s: String, label: String)
@@ -94,4 +100,3 @@ class DeBruijn private(k: Int, vertexMap: Map[String, Vertex], edgeMap: Map[Stri
       println(k + edgeMap(k).toString)
   }
 }
-*/

@@ -33,13 +33,13 @@ trait SequenceSource
   def reverse: Try[SequenceSource]
   private final val maxChars = 20
 
-  override def toString: String = getSequenceString(Some(maxChars))
+  override def toString: String = asString(Some(maxChars))
 
   /*
    * Get a string representing the sequence string; if nChars == None, the string will
    * contain the entire sequence (which could be LARGE), otherwise defaults to 20 chars.
    */
-  def getSequenceString(nChars: Option[Long] = None): String = {
+  def asString(nChars: Option[Long] = None): String = {
     val sb: StringBuffer = new StringBuffer;
     def getChars(n: Long): Iteratee[Char, String] = {
       def step(sbuf: StringBuffer, count: Long): Input[Char] => Iteratee[Char, String] = {
@@ -139,8 +139,8 @@ class SequenceSourceFASTA(fileName: String) extends SequenceSource {
  * Source backed by another source that is (lazily) transformed via a 1:1 transformation
  * function. (For example, this source might represent an RNA sequence which is transformed
  * from a DNA sequence via a transcription function). The original (DNA sequence) source is
- * maintained as the source, and the enumerator just "lifts" any supplied Iteratee so
- * that the step function's input is transformed on demand. 
+ * maintained as the source, and the enumerator (and iterator) just "lifts" any supplied
+ * Iteratee so that the step function's input is transformed on demand. 
  */
 class SequenceSourceMappedLinear(val src: SequenceSource, transform: Char => Char) extends SequenceSource {
   override def apply(i: Int): Try[Char] = src(i).map(transform)

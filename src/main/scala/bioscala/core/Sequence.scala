@@ -27,7 +27,7 @@ abstract class Sequence(val id: String, val src: SequenceSource)
   def reverse: Try[Sequence]
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = src.enumerate(it)
   def iterator: Iterator[Char] = src.iterator
-  def getSequenceString(nChars: Option[Long] = None) = src.getSequenceString(nChars)
+  def asString(nChars: Option[Long] = None) = src.asString(nChars)
 
   /**
    * Returns the Hamming distance between this sequence and the target sequence.
@@ -84,5 +84,5 @@ abstract class Sequence(val id: String, val src: SequenceSource)
   /**
    * String representation of this sequence.
    */
-  override def toString = id + ": " + src.getSequenceString(Some(20))
+  override def toString = id + ": " + src.asString(Some(20))
 }

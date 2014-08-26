@@ -53,7 +53,7 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
 	  b <- liftFilter(it)			// lift the user-supplied iteratee with a cr/lf filter
 	} yield (a, b)
 
-    def myLoop(charIt: Iterator[Char]): Iteratee[Char, List[(String, R)]] = {
+    def enumLoop(charIt: Iterator[Char]): Iteratee[Char, List[(String, R)]] = {
       val resList = loopResultList(charIt, compoundIt, compoundIt, Nil)
       if (resList.isSuccess)
         Done(resList.get.reverse, EndOfInput)
@@ -61,8 +61,9 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
         Error(resList.failed.get)
     }
 
-    enumerateT(fileName, myLoop)
+    enumerateT(fileName, enumLoop)
   }
+
 /*
   @tailrec
   private def loopResult[R](
@@ -90,13 +91,13 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
 	  b <- liftFilter(Iteratee.fold[Char, SequenceCache](new SequenceCachePacked)((r, e) => (r.append(e)))).map(c => it)	// lift the user-supplied iteratee with a cr/lf filter
 	} yield (a, b)
 
-    def myLoop(charIt: Iterator[Char]): Iteratee[Char, R] = {
+    def enumLoop(charIt: Iterator[Char]): Iteratee[Char, R] = {
       val resList = loopResult(charIt, compoundIt)
       if (resList.isSuccess) Done(resList.get, EndOfInput)
       else Error(resList.failed.get)
     }
 
-    enumerateT(fileName, myLoop)
+    enumerateT(fileName, enumLoop)
   }
 */
   /*
