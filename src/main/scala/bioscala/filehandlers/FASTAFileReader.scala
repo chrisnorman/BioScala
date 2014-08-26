@@ -64,42 +64,44 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
     enumerateT(fileName, enumLoop)
   }
 
-/*
   @tailrec
   private def loopResult[R](
     charIt: Iterator[Char],
-	currentIt: Iteratee[Char, (String, Iteratee[SequenceCache, R])]		// iteratee in progress
+	currentIt: Iteratee[Char, (String, SequenceCache)],		// iteratee in progress
+	restartIt: Iteratee[Char, (String, SequenceCache)],		// iteratee to use on EndOfUnit/restart
+	accum: R,												// state accumulator
+	mapF: (R, String, SequenceCache) => R					// state transition function
   ): Try[R] =
   {
     currentIt match {
 	  case Continue(f) =>
 	    val nextIt = stepIt(charIt, f, EndOfUnit)
 	    nextIt match {
-		  case Continue(f) => loopResult(charIt, nextIt)
-	      case Done(res, EndOfUnit) => loopResult(charIt, nextIt)
-	      case Done(res, EndOfInput) => res._2.result
+		  case Continue(f) => loopResult(charIt, nextIt, restartIt, accum, mapF)
+	      case Done(res, EndOfUnit) => loopResult(charIt, restartIt, restartIt, mapF(accum, res._1, res._2), mapF)
+	      case Done(res, EndOfInput) => Try(mapF(accum, res._1, res._2))
 	      case e @ Error(t) => Failure(t)
 	    }
 	  case e @ Error(t) => Failure(t)
-	  case Done(res, rem) => Success(res._2.result.get)
+	  case Done(res, rem) => Try(mapF(accum, res._1, res._2))
 	}
   }
 
-  def enumerateResult[R](it: Iteratee[SequenceCache, R]): Iteratee[Char, R] = {
+  def enumerateResult[R](seed: R, mapF: (R, String, SequenceCache) => R): Iteratee[Char, R] = {
     val compoundIt = for {
 	  a <- Iteratees.takeLine		// FASTA sequence header line
-	  b <- liftFilter(Iteratee.fold[Char, SequenceCache](new SequenceCachePacked)((r, e) => (r.append(e)))).map(c => it)	// lift the user-supplied iteratee with a cr/lf filter
+	  b <- liftFilter(Iteratee.fold[Char, SequenceCache](new SequenceCachePacked)((r, e) => (r.append(e))))	// lift the user-supplied iteratee with a cr/lf filter
 	} yield (a, b)
 
     def enumLoop(charIt: Iterator[Char]): Iteratee[Char, R] = {
-      val resList = loopResult(charIt, compoundIt)
+      val resList = loopResult(charIt, compoundIt, compoundIt, seed, mapF)
       if (resList.isSuccess) Done(resList.get, EndOfInput)
       else Error(resList.failed.get)
     }
 
     enumerateT(fileName, enumLoop)
   }
-*/
+
   /*
    * Return a list of all sequences in the FASTA file reified in a packed cache (use for
    * DNASequences).

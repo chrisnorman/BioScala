@@ -13,34 +13,27 @@ package bioscala.graph
 //    collect the entire string
 //	  add to DeBruijn graph
 
+import scala.util.Try
 import bioscala.core._
 import bioscala.filehandlers.FASTAFileReader
 
 
-/*
-  object DeBruijn {
+object DeBruijn {
 
   /**
    * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
    */
-  def fromFASTAFile(fName: String, k:Int): DeBruijn = {
+  def fromFASTAFile(fName: String, k:Int): Try[DeBruijn] = {
     val ffr = new FASTAFileReader(fName)
-    //val it = Iteratee.fold[Char, Try[DeBruijn]](Try(new DeBruijn))
-    //	((r, e) => )
-
-    val it = SequenceCache.packedCacheGenerator.map(s => )
-    val res = ffr.enumerate(it)
-
-
-    def accGraph(l: List[DNASequence], g: DeBruijn): DeBruijn = {
-      if (l.isEmpty) g
-      else accGraph(l.tail, g.addVertex(l.head.getS.mkString, l.head.id))
-    }
-    accGraph(l, new DeBruijn(k))
-
+    ffr.enumerateResult(
+    	    new DeBruijn(k),
+    	    (oldState: DeBruijn, edgeLabel: String, c: SequenceCache) => {
+    	      	oldState.addVertex(edgeLabel, new SequenceSourceCache(c).asString())
+    	    }
+    ).result
   }
 }
-*/
+
 
 private case class Vertex(s: String)
 private case class Edge(s: String, label: String)
@@ -62,16 +55,15 @@ class DeBruijn private(k: Int, vertexMap: Map[String, Vertex], edgeMap: Map[Stri
   /**
    * Add a new vertex to an existing graphs. Returns a new DeBruijn graph instance.
    */
-  def addVertex(s: String, label: String): DeBruijn = {
-    // FIX: is it an error if this k-mer already exists in the graph ?
-    if (edgeMap.contains(s)) this
+  def addVertex(edgeLabel: String, s: String): DeBruijn = {
+    if (edgeMap.contains(s)) this  // is this ok ?
     else {
       val prefix = s.take(k)
       val suffix = s.takeRight(k)
       val pv = vertexMap.getOrElse(prefix, new Vertex(prefix))
       val sv = vertexMap.getOrElse(suffix, new Vertex(suffix))
       val vm = vertexMap.updated(prefix, pv).updated(suffix, sv)
-      new DeBruijn(k, vm, edgeMap.updated(s, (pv, sv, label)))
+      new DeBruijn(k, vm, edgeMap.updated(s, (pv, sv, edgeLabel)))
     }
   }
 
