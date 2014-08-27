@@ -42,7 +42,6 @@ class FASTAFileParser {
   // this will either be EndOfInput (for FASTAFileSource, since the enumerator should end after
   // the first sequence), or EndOfUnit for FASTAFileReader (since it uses EndOfUnit as a
   // sentinel to start the next sequence with a new seed)
-  // TODO: the I/O needs to be inside a TRY
   protected def stepIt[R](charIt: Iterator[Char], f: Input[Char] => Iteratee[Char, R], eou: Input[Nothing]) : Iteratee[Char, R] = {
     if (charIt.hasNext) {
       val c = charIt.next
@@ -72,10 +71,11 @@ class FASTAFileParser {
         val charIt = tBS.get.iter
 	    val tChev = Try{charIt.hasNext && charIt.next == '>'}
 	    if (tChev.isSuccess) {
-	      val getRes = f(charIt)
+	      val getRes = Try{f(charIt)}
           tBS.get.close
           tFIS.get.close
-          getRes
+          if (getRes.isSuccess) getRes.get
+          else Error(getRes.failed.get)
 	    }
 	    else {
           tBS.get.close

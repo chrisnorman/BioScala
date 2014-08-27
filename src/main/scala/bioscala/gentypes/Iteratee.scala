@@ -48,7 +48,7 @@ trait Iteratee[E, R] {
    * Returns a modified Iteratee that maps the values from the enumerator BEFORE they are
    * passed to the input handler/continuation.
    */
-  // TODO: is this rendered obsolete by Enumeratee ??
+  // TODO: will this be rendered obsolete by Enumeratee ??
   def mapInput(inputTransform: E => E): Iteratee[E, R] = this match {
     case Continue(f) =>
       Continue { // map the input using the transform function

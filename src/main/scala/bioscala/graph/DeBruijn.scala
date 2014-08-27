@@ -8,11 +8,6 @@
 
 package bioscala.graph
 
-// Start with empty DeBruijn
-// For each sequence
-//    collect the entire string
-//	  add to DeBruijn graph
-
 import scala.util.Try
 import bioscala.core._
 import bioscala.filehandlers.FASTAFileReader
@@ -32,8 +27,18 @@ object DeBruijn {
     	    }
     ).result
   }
-}
 
+  /**
+   * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
+   */ 
+  def fromSequenceList(ls: List[Sequence], k: Int): DeBruijn = {
+    def accGraph(ls: List[Sequence], graph: DeBruijn): DeBruijn = {
+      if (ls.isEmpty) graph
+      else accGraph(ls.tail, graph.addVertex(ls.head.id, ls.head.asString(None)))
+    }
+    accGraph(ls, new DeBruijn(k))
+  }
+}
 
 private case class Vertex(s: String)
 private case class Edge(s: String, label: String)
@@ -56,7 +61,7 @@ class DeBruijn private(k: Int, vertexMap: Map[String, Vertex], edgeMap: Map[Stri
    * Add a new vertex to an existing graphs. Returns a new DeBruijn graph instance.
    */
   def addVertex(edgeLabel: String, s: String): DeBruijn = {
-    if (edgeMap.contains(s)) this  // is this ok ?
+    if (edgeMap.contains(s)) this
     else {
       val prefix = s.take(k)
       val suffix = s.takeRight(k)
@@ -72,19 +77,19 @@ class DeBruijn private(k: Int, vertexMap: Map[String, Vertex], edgeMap: Map[Stri
    */
   def findOverlapPairs:List[(String, String)] = {
     for {
-      k <- edgeMap.keys.toList
-      val (ks, ke, kl) = edgeMap(k)
+      key <- edgeMap.keys.toList
+      val (kString, kEdge, kLabel) = edgeMap(key)
       j <- edgeMap.keys
-      if (k != j)
-      val (js, je, jl) = edgeMap(j)
-      if (ke == js)
-    } yield (kl, jl)
+      if (key != j)
+      val (jString, jEdge, jLabel) = edgeMap(j)
+      if (kEdge == jString)
+    } yield (kLabel, jLabel)
   }
 
   /**
    * Displays the graph on the console.
    */
-  def display: Unit = {
+  def degbugDisplay: Unit = {
     println("DeBruijn Graph:\nVertices")
     println(vertexMap)
     println("Edges")

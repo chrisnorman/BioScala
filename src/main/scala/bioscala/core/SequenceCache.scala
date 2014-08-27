@@ -18,7 +18,7 @@ import bioscala.gentypes._
  */
 trait SequenceCache
   extends Enumerator[Char]
-  // TODO: with Traversable[Char]
+  with Traversable[Char]
 {
 
   val length: Int
@@ -27,6 +27,7 @@ trait SequenceCache
   def apply(index: Int): Try[Char]
   def enumerate[R](it: Iteratee[Char, R]): Iteratee[Char, R] = enumerateStep(0, it)
   def enumerateReverse[R](it: Iteratee[Char, R]): Iteratee[Char, R] = reverseEnumerateStep(0, it)
+  def foreach[U](f: Char => U) = {enumerate(Iteratee.fold[Char, Unit](Unit)((r, e) => f(e)))}
 
   @tailrec
   protected final def enumerateStep[R](count: Int, it: Iteratee[Char, R]): Iteratee[Char, R] = {
