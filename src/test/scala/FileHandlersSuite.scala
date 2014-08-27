@@ -38,14 +38,14 @@ import bioscala.filehandlers._
   }
 
   test("FASTA File Source - enumerate (takeRight)") {
-    val seq = DNASequence(getTestFileDir + "tcons.fasta")
+    val seq = DNASequence(getTestFileDir + "tcons.FASTA")
     val resIt = seq.enumerate(Iteratees.takeRight(4))
     val res = resIt.result.map(_.mkString).getOrElse("failed")
     assert(res == "AGCT")
   }
   
   test("FASTA File Reader - enumerateSequencesPacked") {
-    val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
+    val ffr = new FASTAFileReader(getTestFileDir + "tcons.FASTA")
     val res = ffr.reifySequencesPacked.result
     val s = res.map(l => l.map(a => (a._1, DNASequence(a._1, new SequenceSourceCache(a._2)).asString())))
     assert(s.get.length == 7)
@@ -70,7 +70,7 @@ import bioscala.filehandlers._
   }
 
   test("FASTA File Reader - enumerateSequencesUnpacked") {
-    val ffr = new FASTAFileReader(getTestFileDir + "tcons.fasta")
+    val ffr = new FASTAFileReader(getTestFileDir + "tcons.FASTA")
     val res = ffr.reifySequencesUnpacked.result
     val s = res.map(l => l.map(a => (a._1, DNASequence(a._1, new SequenceSourceCache(a._2)).asString())))
     assert(s.get(0)._2.mkString == "ATCCAGCT")

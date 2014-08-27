@@ -27,7 +27,7 @@ import bioscala.graph._
   val getTestFileDir = "src\\test\\resources\\"
 
   test("DeBruijn Overlap Pairs from FASTA File") {
-    val dbr = DeBruijn.fromFASTAFile(getTestFileDir + "tgrph.fasta", 5)
+    val dbr = DeBruijn.fromFASTAFile(getTestFileDir + "tgrph.FASTA", 5)
     assert(dbr.isSuccess)
     val overlaps = dbr.get.findOverlapPairs
     assert(overlaps == 
@@ -44,7 +44,7 @@ import bioscala.graph._
   }
 
   test("DeBruijn Overlap Pairs from sequence list") {
-    val ffr = new FASTAFileReader(getTestFileDir + "tgrph.fasta")
+    val ffr = new FASTAFileReader(getTestFileDir + "tgrph.FASTA")
     val res = ffr.reifySequencesPacked.result
     val l = res.map(l => l.map(a => DNASequence(a._1, new SequenceSourceCache(a._2))))
     assert(l.isSuccess)

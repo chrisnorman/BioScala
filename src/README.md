@@ -78,5 +78,5 @@ For additional BioScala examples, see the test suites or the file BioScalaTestDr
 
 ##Next Steps
 
-Port the DeBruijn graph and Suffix Trie implementations from the first iteration of BioScala.
+Port the Suffix Trie and RNA sequence (ORF and validProtein methods, etc) implementations from the first iteration of BioScala.
 

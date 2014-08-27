@@ -12,7 +12,9 @@ import scala.util.Try
 import bioscala.core._
 import bioscala.filehandlers.FASTAFileReader
 
-
+/*
+ * DeBruijn graph creation methods.
+ */
 object DeBruijn {
 
   /**
@@ -29,7 +31,7 @@ object DeBruijn {
   }
 
   /**
-   * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
+   * Returns a DeBruijn graph representing the sequence strings in a list.
    */ 
   def fromSequenceList(ls: List[Sequence], k: Int): DeBruijn = {
     def accGraph(ls: List[Sequence], graph: DeBruijn): DeBruijn = {

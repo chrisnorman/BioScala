@@ -61,12 +61,12 @@ object BioScalaTestDriver {
       			println(res.get)
 
       case 6 => // FASTA file *source* enumerate
-     			val seq = DNASequence(getTestFileDir + "tcons.fasta")
+     			val seq = DNASequence(getTestFileDir + "tcons.FASTA")
      			val res = seq.enumerate(Iteratees.takeRight(8))
        			println(res.result)
 
       case 7 => // FASTA file *reader* reifySequences
-      			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
+      			val ffr = new FASTAFileReader(getTestFileDir + "tlcsm.FASTA")
      			val res = ffr.reifySequencesPacked.result
      			res.map(l => l.map(a => println(DNASequence(a._1, new SequenceSourceCache(a._2)).asString())))
 
@@ -80,7 +80,7 @@ object BioScalaTestDriver {
        			println(gc2)
      			
       case 9 =>  // FASTA file reader enumerateResult/DeBruijn graph creation/find overlaps
-       			val res = DeBruijn.fromFASTAFile(getTestFileDir + "tgrph.fasta", 5)
+       			val res = DeBruijn.fromFASTAFile(getTestFileDir + "tgrph.FASTA", 5)
        			if (res.isSuccess)
        			  println("Overlaps: \n" + res.get.findOverlapPairs)
 
@@ -96,14 +96,14 @@ object BioScalaTestDriver {
       			println(dnaSeq.findLiteralMotif(p))
 
       case 9 => // TestID: cons
-		         val ff = new FASTAFileReader(getTestFileDir + "tcons.fasta")
+		         val ff = new FASTAFileReader(getTestFileDir + "tcons.FASTA")
 		         val fList = ff.getSequenceList
 		         val (profile, consensus) = SequenceAnalysis.getConsensusProfileAndString(fList)
 		         SequenceAnalysis.printProfile(profile)
 		         println(consensus)
 
       case 11 => // testID: lcsm
-        		 val ff = new FASTAFileReader(getTestFileDir + "tlcsm.fasta")
+        		 val ff = new FASTAFileReader(getTestFileDir + "tlcsm.FASTA")
 		         val mList = ff.getSequenceList
 		         val g = mList.foldLeft(new SuffixTree)((g: SuffixTree, d: DNASequence) => g.updated(d.getS.mkString + "$", d.id))
 		         val lst = mList.foldLeft(List[String]())((s: List[String], d: DNASequence) => d.id.mkString :: s)
@@ -126,7 +126,7 @@ object BioScalaTestDriver {
         		println(n)
         		 
       case 15 => // TestID: orf
-		        val ff = new FASTAFileReader(getTestFileDir + "torf.fasta")
+		        val ff = new FASTAFileReader(getTestFileDir + "torf.FASTA")
 		        val dnaSeqList = ff.getSequenceList
 		        dnaSeqList match {
 		          case seq :: Nil => val proteins = dnaSeqList.head.candidateProteins.map(_.getS.mkString).toSet.toList.sortWith(_ < _)
@@ -152,7 +152,7 @@ object BioScalaTestDriver {
 	val bs = new BufferedSource(fis)
 	val proteinIDList = bs.getLines().toList
 	def getUniProtFastaFile(id: String) : FASTAFileReader = {
-	  val baseURL = "http://www.uniprot.org/uniprot/" + id + ".fasta"
+	  val baseURL = "http://www.uniprot.org/uniprot/" + id + ".FASTA"
 	  val result = scala.io.Source.fromURL(baseURL).mkString
 	  println("Protein: " + id + "Length: " + result.length)
 	  new FASTAFileReader(new ByteArrayInputStream(result.getBytes))
