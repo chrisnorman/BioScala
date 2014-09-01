@@ -87,6 +87,9 @@ class FASTAFileReader(fileName: String) extends FASTAFileParser {
 	}
   }
 
+  // TODO: this currently aggregates sequence data into SequenceCachePacked, which currently is only
+  // implemented for the DNA alphabet, so any downstream API that uses this (i.e., SuffixTree and
+  // DeBruijn graph fromFASTAFile methods) will only work on sequences of DNA residues.
   def enumerateResult[R](seed: R, mapF: (R, String, SequenceCache) => R): Iteratee[Char, R] = {
     val compoundIt = for {
 	  a <- Iteratees.takeLine		// FASTA sequence header line

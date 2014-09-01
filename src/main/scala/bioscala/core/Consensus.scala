@@ -8,10 +8,12 @@
 
 package bioscala.core
 
-/*
+// TODO: Switch to using iteratee rather then iterator
+// TODO: make this work on any sequence alphabet (instead of just DNASequence)
+
+ /*
  * Contains implementation of *DNA* sequence profile and consensus string finding.
  */
-// TODO: make this work on any sequence alphabet (instead of just DNASequence)
 object Consensus {
 
   /**

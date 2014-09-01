@@ -9,6 +9,7 @@
 package bioscala.graph
 
 import scala.util.Try
+
 import bioscala.core._
 import bioscala.filehandlers.FASTAFileReader
 
@@ -16,6 +17,8 @@ import bioscala.filehandlers.FASTAFileReader
  * DeBruijn graph creation methods.
  */
 object DeBruijn {
+
+  // TODO: fromFASTAFile uses FASTAFileReader, which in turn uses a packed cache, which assumes DNASequences
 
   /**
    * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
