@@ -43,7 +43,7 @@ variable; and subsequently delivered to the consuming iteratee or iterator.
 
 ##Reification
 
-In some cases, a backing source which is represented by a FASTA file may need to be reified (forced) into memory.
+In some cases, a backing source which is represented by a FASTA file may need to be reified (materialized) into memory.
 One such example is reversing a sequence:
 
     val seq = DNASequence("my.fasta")
