@@ -17,7 +17,7 @@ import bioscala.filehandlers._
 import bioscala.graph._
 
 /**
- * 
+ * Test the bioscala.graph package (DeBruijn graph, FSM, SuffixTree).
  */
 @RunWith(classOf[JUnitRunner]) class GraphSuite extends FunSuite {
 
@@ -60,20 +60,48 @@ import bioscala.graph._
         )
       )
   }
-
-  test("Suffix Tree From Strings") {
+  
+  // Test some properties of the FSM; the  test "Find pattern substring" is more thorough
+  test("FSM from Pattern") {
+    val fsm = FSM.fromPattern("N{P}[ST]{P}".toVector, ProteinAlphabet)
+    assert(!fsm.isAcceptState(0))
+    assert(!fsm.isAcceptState(1))
+    assert(!fsm.isAcceptState(2))
+    assert(!fsm.isAcceptState(3))
+    assert(fsm.isAcceptState(4))
+    assert(fsm.getValidEvents(2) == Vector('S', 'T'))
+  }
+  
+  test("Suffix Tree from String - Longest Common Substring") {
     val st0 = new SuffixTree
     val st1 = st0.updated("GATTACA$", "id1")
     val st2 = st1.updated("TAGACCA#", "id2")
     val st3 = st2.updated("ATACA&", "id3")
-    // TODO: actually test something here....
-    //st3.display
+    val lst = st3.lcs
+    assert (lst.length === 3)
+    assert (lst.contains("AC") && lst.contains("TA") && lst.contains("CA"))
   }
-  
-  test("Suffix Tree From Sequences") {
-    val st = SuffixTree.fromFASTAFile(getTestFileDir + "tcons.FASTA")
+
+  test("Suffix Tree From Sequences - Longest Common Substring") {
+    val st = SuffixTree.fromFASTAFile(getTestFileDir + "tlcs.FASTA")
     assert(st.isSuccess)
-    // TODO: actually test something here....
-    //st.get.display
+    val lst = st.get.lcs
+    assert (lst.length === 3)
+    assert (lst.contains("AC") && lst.contains("TA") && lst.contains("CA"))
+  }
+
+  test("Suffix Tree from String - Find Frequent K-mer") {
+    val st0 = new SuffixTree
+ 	val st1 = st0.updated("ACGTTGCATGTCGCATGATGCATGAGAGCT$", "id1") // CATG(3) and GCAT(3)
+    val lst = st1.mostFrequentKmers(4)
+    assert(lst.length == 2)
+    assert(lst.contains(("CATG", 3)) && lst.contains(("GCAT", 3)))
+  }
+
+  test("Suffix Tree from String - Find Pattern Substring") { 	
+    val proteinAlphabet = "ACDEFGHIKLMNPQRSTVWY".toVector
+	val st = new SuffixTree().updated("ABNDSDEHK#", "test pattern match")
+    val l = st.matchPattern(ProteinAlphabet, "N{P}[ST]{P}")
+    assert(l == List((2, 4)))
   }
 }

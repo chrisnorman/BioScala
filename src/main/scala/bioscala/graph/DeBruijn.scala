@@ -18,17 +18,17 @@ import bioscala.filehandlers.FASTAFileReader
  */
 object DeBruijn {
 
-  // TODO: fromFASTAFile uses FASTAFileReader, which in turn uses a packed cache, which assumes DNASequences
-
   /**
    * Returns a DeBruijn graph representing the sequence strings in the FASTA file fName.
+   * 
+   * NOTE: this currently assumes the FASTA file contains a DNA sequence
    */
   def fromFASTAFile(fName: String, k:Int): Try[DeBruijn] = {
     val ffr = new FASTAFileReader(fName)
     ffr.enumerateResult(
     	    new DeBruijn(k),
-    	    (oldState: DeBruijn, edgeLabel: String, c: SequenceCache) => {
-    	      	oldState.addVertex(edgeLabel, new SequenceSourceCache(c).asString())
+    	    (acc: DeBruijn, edgeLabel: String, c: SequenceCache) => {
+    	      	acc.addVertex(edgeLabel, new SequenceSourceCache(c).asString())
     	    }
     ).result
   }

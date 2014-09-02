@@ -67,7 +67,7 @@ abstract class Sequence(val id: String, val src: SequenceSource)
     Try(getHamm(this.iterator, targetSeq.iterator, 0))
   }
 
-  // @FIX: Do something better than brute force motif search
+  // @TODO: Do something better than brute force motif search
   /**
    * Returns a literal motif. Brute force. Needs work.
    */
