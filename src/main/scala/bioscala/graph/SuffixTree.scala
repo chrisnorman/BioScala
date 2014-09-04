@@ -35,7 +35,7 @@ object SuffixTree {
    */
   def fromFASTAFile(fName: String): Try[SuffixTree] = {
     val ffr = new FASTAFileReader(fName)
-    ffr.enumerateResult(
+    ffr.enumerateFold(
     	    new SuffixTree(),
     	    (acc: SuffixTree, id: String, c: SequenceCache) => {
     	      	acc.updated(new DNASequence(id, new SequenceSourceCache(c)))
@@ -87,7 +87,6 @@ private abstract class STNode(val path: String) {
   // Helpers
   private[graph] def countDescendants(acc: Long): Long // get count of # of sources in all descendant leaves
 
-  // TODO: this is just a fold....
   // Visit each leaf and return a flat list of results returned by visitf 
   private[graph] def visitAllLeaves[T](acc: List[T], n: STNode, visitf: STLeaf => List[T]) : List[T] = {
 	n match {
@@ -96,7 +95,6 @@ private abstract class STNode(val path: String) {
 	}
   }
 
-  // TODO: this is just a fold....
   // Visit each leaf and aggregate the return values using the combine function
   private[graph] def visitAllLeavesCombine[T](acc: T, n: STNode, visitF: STLeaf => T, combineF: (T, T) => T) : T = {
     n match {

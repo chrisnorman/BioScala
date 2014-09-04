@@ -25,7 +25,7 @@ object DeBruijn {
    */
   def fromFASTAFile(fName: String, k:Int): Try[DeBruijn] = {
     val ffr = new FASTAFileReader(fName)
-    ffr.enumerateResult(
+    ffr.enumerateFold(
     	    new DeBruijn(k),
     	    (acc: DeBruijn, edgeLabel: String, c: SequenceCache) => {
     	      	acc.addVertex(edgeLabel, new SequenceSourceCache(c).asString())

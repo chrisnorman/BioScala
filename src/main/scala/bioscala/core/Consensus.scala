@@ -8,7 +8,6 @@
 
 package bioscala.core
 
-// TODO: Switch to using iteratee rather then iterator
 // TODO: make this work on any sequence alphabet (instead of just DNASequence)
 
  /*
