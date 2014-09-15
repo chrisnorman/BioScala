@@ -11,7 +11,7 @@ package bioscala.core
 /**
  * Types for Polar/NonPolar and Acidic/Basic amino acids.
  */
-sealed case class AAType
+sealed case class AAType()
 
 /** Amino Acid type for a polar amino acid. */
 final object aaPolar extends AAType
